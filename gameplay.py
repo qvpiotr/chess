@@ -1,5 +1,6 @@
 import pygame
 import sys
+from MovesGenerator import *
 
 
 class Gameplay:
@@ -11,6 +12,9 @@ class Gameplay:
         self.size = self.width, self.height
         self.field_side = self.height // 8
         self.board_screen = pygame.display.set_mode(self.size)
+        self.active_color = "w"
+        self.non_active_color = "b"
+        self.move_generator = MovesGenerator(self)
         self.pieces = {
                        (0, 0): "img/bR.png", (0, 1): "img/bN.png", (0, 2): "img/bB.png", (0, 3): "img/bQ.png",
                        (0, 4): "img/bK.png", (0, 5): "img/bB.png", (0, 6): "img/bN.png", (0, 7): "img/bR.png",
@@ -21,8 +25,6 @@ class Gameplay:
                        (6, 0): "img/wP.png", (6, 1): "img/wP.png", (6, 2): "img/wP.png", (6, 3): "img/wP.png",
                        (6, 4): "img/wP.png", (6, 5): "img/wP.png", (6, 6): "img/wP.png", (6, 7): "img/wP.png"
                        }
-
-
 
     def two_players_game(self):
         old_pos = None
@@ -36,24 +38,25 @@ class Gameplay:
                     sys.exit()
                 elif event.type == pygame.MOUSEBUTTONUP and not to_move:
                     click_pos = pygame.mouse.get_pos()
-                    
-                    old_pos = ((click_pos[1]-20)//self.field_side, click_pos[0]//self.field_side)
+                    old_pos = ((click_pos[1])//self.field_side, click_pos[0]//self.field_side)
                     print(click_pos)
                     print("FROM:", old_pos)
-                    if old_pos in self.pieces.keys():
+                    if old_pos in self.pieces.keys() and self.pieces.get(old_pos)[4] == self.active_color:
                         pygame.draw.rect(self.board_screen, (255, 255, 0),
                          (old_pos[1] * self.field_side, old_pos[0] * self.field_side, self.field_side, self.field_side))
                         self.draw_pieces()
                         to_move = True
                 elif event.type == pygame.MOUSEBUTTONUP and to_move:
                     click_pos = pygame.mouse.get_pos()
-                    
-                    new_pos = ((click_pos[1]-20)//self.field_side, click_pos[0]//self.field_side)
+                    new_pos = ((click_pos[1])//self.field_side, click_pos[0]//self.field_side)
                     print(click_pos)
                     print("TO:", new_pos)
-                    move = Move(old_pos,new_pos,self.pieces)
-                    self.pieces = move.make_move()
-                    self.moveLog.append((old_pos,new_pos))
+                    valid_moves = self.move_generator.generate_valid_moves()
+                    if (old_pos, new_pos) in valid_moves:
+                        move = Move(old_pos, new_pos, self.pieces)
+                        self.pieces = move.make_move()
+                        self.moveLog.append((old_pos,new_pos))
+                        self.active_color, self.non_active_color = self.non_active_color, self.active_color
                     to_move = False
                     self.draw_chessboard()
                     self.draw_pieces()
@@ -74,7 +77,7 @@ class Gameplay:
             self.board_screen.blit(image, (pos[1] * self.field_side, pos[0] * self.field_side))
 
     # def get_pieces(self):
-    #     return self.pieces        
+    #    return self.pieces
 
     # def move(self, oldpos, newpos):
     #     if oldpos in self.pieces.keys():
@@ -90,14 +93,14 @@ class Gameplay:
     #     if len(self.moveLog) != 0:
     #         move = self.moveLog.pop()
 
+
 class Move:
-        
-    def __init__(self,old_pos,new_pos,previous_board):
+
+    def __init__(self, old_pos, new_pos, previous_board):
         self.previous_board = previous_board
         self.old_pos = old_pos
         self.new_pos = new_pos
         self.Gameplay = Gameplay
-
 
     def make_move(self):
         if self.old_pos in self.previous_board.keys():
