@@ -32,6 +32,7 @@ class Gameplay:
         self.board_screen.fill((0, 0, 0))
         self.draw_chessboard()
         self.draw_pieces()
+        valid_moves = self.move_generator.generate_valid_moves()
         while 1:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -51,16 +52,21 @@ class Gameplay:
                     new_pos = ((click_pos[1])//self.field_side, click_pos[0]//self.field_side)
                     print(click_pos)
                     print("TO:", new_pos)
-                    valid_moves = self.move_generator.generate_valid_moves()
-                    if (old_pos, new_pos) in valid_moves:
+                    if (old_pos, new_pos) in valid_moves and self.check_move_correctness(old_pos, new_pos):
                         move = Move(old_pos, new_pos, self.pieces)
                         self.pieces = move.make_move()
                         self.moveLog.append((old_pos,new_pos))
                         self.active_color, self.non_active_color = self.non_active_color, self.active_color
                     to_move = False
+                    valid_moves = self.move_generator.generate_valid_moves()
+                    if not self.find_any_possible_move(valid_moves):
+                        print("NO MOVES FOR COLOR", self.active_color)
+                        if self.find_any_attacker():
+                            print("CHECKMATE")
+                        else:
+                            print("STALEMATE")
                     self.draw_chessboard()
                     self.draw_pieces()
-  
             pygame.display.flip()
 
     def draw_chessboard(self):
@@ -75,6 +81,55 @@ class Gameplay:
             image = pygame.image.load(img_name)
             # image = pygame.transform.scale(image, (self.field_side, self.field_side))
             self.board_screen.blit(image, (pos[1] * self.field_side, pos[0] * self.field_side))
+
+    def find_any_attacker(self):
+        self.active_color, self.non_active_color = self.non_active_color, self.active_color
+        attacker = False
+        king_pos = None
+        moves = self.move_generator.generate_valid_moves()
+        for pos, img in self.pieces.items():
+            color = img[4]
+            fig = img[5]
+            if fig != "K" or color == self.active_color:
+                continue
+            king_pos = pos
+            break
+        for start_pos, possible_pos in moves:
+            if possible_pos == king_pos:
+                attacker = True
+                break
+        self.active_color, self.non_active_color = self.non_active_color, self.active_color
+        return attacker
+
+    def find_any_possible_move(self, valid_moves):
+        for start_pos, possible_pos in valid_moves:
+            if self.check_move_correctness(start_pos,possible_pos):
+                return True
+        return False
+
+    def check_move_correctness(self, start_pos, possible_pos):
+        cp_init_pos = {}
+        for pos, img in self.pieces.items():
+            cp_init_pos[pos]=img
+        king_safe = True
+        move = Move(start_pos, possible_pos, self.pieces)
+        self.pieces = move.make_move()
+        self.active_color, self.non_active_color = self.non_active_color, self.active_color
+        valid_moves = self.move_generator.generate_valid_moves()
+        end_positions = [move[1] for move in valid_moves]
+        for pos, img in self.pieces.items():
+            color = img[4]
+            fig = img[5]
+            if fig != "K" or color != self.non_active_color:
+                continue
+            if pos in end_positions:
+                king_safe = False
+        self.active_color, self.non_active_color = self.non_active_color, self.active_color
+        move_back = Move(possible_pos, start_pos, self.pieces)
+        self.pieces = move_back.make_move()
+        self.pieces = cp_init_pos
+        return king_safe
+
 
     # def get_pieces(self):
     #    return self.pieces
@@ -104,7 +159,7 @@ class Move:
 
     def make_move(self):
         if self.old_pos in self.previous_board.keys():
-            print("RUCH")
+            # print("RUCH")
             # self.previous_board = Gameplay.get_pieces()
             new_board = self.previous_board
             # print(self.previous_board)
