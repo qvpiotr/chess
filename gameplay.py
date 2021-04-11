@@ -1,5 +1,6 @@
 import pygame
 import sys
+from MovesGenerator import *
 
 
 class Gameplay:
@@ -11,6 +12,9 @@ class Gameplay:
         self.size = self.width, self.height
         self.field_side = self.height // 8
         self.board_screen = pygame.display.set_mode(self.size)
+        self.active_color = "w"
+        self.non_active_color = "b"
+        self.move_generator = MovesGenerator(self)
         self.pieces = {
                        (0, 0): "img/bR.png", (0, 1): "img/bN.png", (0, 2): "img/bB.png", (0, 3): "img/bQ.png",
                        (0, 4): "img/bK.png", (0, 5): "img/bB.png", (0, 6): "img/bN.png", (0, 7): "img/bR.png",
@@ -22,42 +26,47 @@ class Gameplay:
                        (6, 4): "img/wP.png", (6, 5): "img/wP.png", (6, 6): "img/wP.png", (6, 7): "img/wP.png"
                        }
 
-
-
     def two_players_game(self):
         old_pos = None
         to_move = False
         self.board_screen.fill((0, 0, 0))
         self.draw_chessboard()
         self.draw_pieces()
+        valid_moves = self.move_generator.generate_valid_moves()
         while 1:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
                 elif event.type == pygame.MOUSEBUTTONUP and not to_move:
                     click_pos = pygame.mouse.get_pos()
-                    
-                    old_pos = ((click_pos[1]-20)//self.field_side, click_pos[0]//self.field_side)
+                    old_pos = ((click_pos[1])//self.field_side, click_pos[0]//self.field_side)
                     print(click_pos)
                     print("FROM:", old_pos)
-                    if old_pos in self.pieces.keys():
+                    if old_pos in self.pieces.keys() and self.pieces.get(old_pos)[4] == self.active_color:
                         pygame.draw.rect(self.board_screen, (255, 255, 0),
                          (old_pos[1] * self.field_side, old_pos[0] * self.field_side, self.field_side, self.field_side))
                         self.draw_pieces()
                         to_move = True
                 elif event.type == pygame.MOUSEBUTTONUP and to_move:
                     click_pos = pygame.mouse.get_pos()
-                    
-                    new_pos = ((click_pos[1]-20)//self.field_side, click_pos[0]//self.field_side)
+                    new_pos = ((click_pos[1])//self.field_side, click_pos[0]//self.field_side)
                     print(click_pos)
                     print("TO:", new_pos)
-                    move = Move(old_pos,new_pos,self.pieces)
-                    self.pieces = move.make_move()
-                    self.moveLog.append((old_pos,new_pos))
+                    if (old_pos, new_pos) in valid_moves and self.check_move_correctness(old_pos, new_pos):
+                        move = Move(old_pos, new_pos, self.pieces)
+                        self.pieces = move.make_move()
+                        self.moveLog.append((old_pos,new_pos))
+                        self.active_color, self.non_active_color = self.non_active_color, self.active_color
                     to_move = False
+                    valid_moves = self.move_generator.generate_valid_moves()
+                    if not self.find_any_possible_move(valid_moves):
+                        print("NO MOVES FOR COLOR", self.active_color)
+                        if self.find_any_attacker():
+                            print("CHECKMATE")
+                        else:
+                            print("STALEMATE")
                     self.draw_chessboard()
                     self.draw_pieces()
-  
             pygame.display.flip()
 
     def draw_chessboard(self):
@@ -73,8 +82,57 @@ class Gameplay:
             # image = pygame.transform.scale(image, (self.field_side, self.field_side))
             self.board_screen.blit(image, (pos[1] * self.field_side, pos[0] * self.field_side))
 
+    def find_any_attacker(self):
+        self.active_color, self.non_active_color = self.non_active_color, self.active_color
+        attacker = False
+        king_pos = None
+        moves = self.move_generator.generate_valid_moves()
+        for pos, img in self.pieces.items():
+            color = img[4]
+            fig = img[5]
+            if fig != "K" or color == self.active_color:
+                continue
+            king_pos = pos
+            break
+        for start_pos, possible_pos in moves:
+            if possible_pos == king_pos:
+                attacker = True
+                break
+        self.active_color, self.non_active_color = self.non_active_color, self.active_color
+        return attacker
+
+    def find_any_possible_move(self, valid_moves):
+        for start_pos, possible_pos in valid_moves:
+            if self.check_move_correctness(start_pos,possible_pos):
+                return True
+        return False
+
+    def check_move_correctness(self, start_pos, possible_pos):
+        cp_init_pos = {}
+        for pos, img in self.pieces.items():
+            cp_init_pos[pos]=img
+        king_safe = True
+        move = Move(start_pos, possible_pos, self.pieces)
+        self.pieces = move.make_move()
+        self.active_color, self.non_active_color = self.non_active_color, self.active_color
+        valid_moves = self.move_generator.generate_valid_moves()
+        end_positions = [move[1] for move in valid_moves]
+        for pos, img in self.pieces.items():
+            color = img[4]
+            fig = img[5]
+            if fig != "K" or color != self.non_active_color:
+                continue
+            if pos in end_positions:
+                king_safe = False
+        self.active_color, self.non_active_color = self.non_active_color, self.active_color
+        move_back = Move(possible_pos, start_pos, self.pieces)
+        self.pieces = move_back.make_move()
+        self.pieces = cp_init_pos
+        return king_safe
+
+
     # def get_pieces(self):
-    #     return self.pieces        
+    #    return self.pieces
 
     # def move(self, oldpos, newpos):
     #     if oldpos in self.pieces.keys():
@@ -90,18 +148,18 @@ class Gameplay:
     #     if len(self.moveLog) != 0:
     #         move = self.moveLog.pop()
 
+
 class Move:
-        
-    def __init__(self,old_pos,new_pos,previous_board):
+
+    def __init__(self, old_pos, new_pos, previous_board):
         self.previous_board = previous_board
         self.old_pos = old_pos
         self.new_pos = new_pos
         self.Gameplay = Gameplay
 
-
     def make_move(self):
         if self.old_pos in self.previous_board.keys():
-            print("RUCH")
+            # print("RUCH")
             # self.previous_board = Gameplay.get_pieces()
             new_board = self.previous_board
             # print(self.previous_board)
