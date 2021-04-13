@@ -15,6 +15,10 @@ class Gameplay:
         self.active_color = "w"
         self.non_active_color = "b"
         self.move_generator = MovesGenerator(self)
+        self.white_short_castling = True
+        self.white_long_castling = True
+        self.black_short_castling = True
+        self.black_long_castling = True
         self.pieces = {
             (0, 0): "img/bR.png", (0, 1): "img/bN.png", (0, 2): "img/bB.png", (0, 3): "img/bQ.png",
             (0, 4): "img/bK.png", (0, 5): "img/bB.png", (0, 6): "img/bN.png", (0, 7): "img/bR.png",
@@ -109,7 +113,7 @@ class Gameplay:
         return False
 
     def check_move_correctness(self, start_pos, possible_pos):
-        cp_init_pos = {}
+        cp_init_pos = {}    # dla pewnosci dzialam na kopii bo nie pamietam jak sie zachowuje przypisanie slownika
         for pos, img in self.pieces.items():
             cp_init_pos[pos] = img
         king_safe = True
@@ -163,10 +167,11 @@ class Move:
     def check_en_passant(self, board):
         img_name = board[self.old_pos]
         color = img_name[4]
+        fig = img_name[5]
         pos_diff = (self.new_pos[0] - self.old_pos[0], self.new_pos[1] - self.old_pos[1])
-        if pos_diff in [(-1, -1), (-1, 1)] and self.new_pos not in board.keys() and color == "w":
+        if pos_diff in [(-1, -1), (-1, 1)] and self.new_pos not in board.keys() and color == "w" and fig == "P":
             return self.new_pos[0] + 1, self.new_pos[1]
-        if pos_diff in [(1, -1), (1, 1)] and self.new_pos not in board.keys() and color == "b":
+        if pos_diff in [(1, -1), (1, 1)] and self.new_pos not in board.keys() and color == "b" and fig == "P":
             return self.new_pos[0] - 1, self.new_pos[1]
         return None, None
 
