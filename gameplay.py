@@ -58,8 +58,17 @@ class Gameplay:
                     print(click_pos)
                     print("TO:", new_pos)
                     if (old_pos, new_pos) in valid_moves and self.check_move_correctness(old_pos, new_pos):
+                        fig = self.pieces[old_pos][5]
+                        move_diff = (new_pos[0]-old_pos[0], new_pos[1]-old_pos[1])
+                        if fig == "K" and move_diff == (0, 2):
+                            if not self.check_castling_availability("short"):
+                                break
+                        if fig == "K" and move_diff == (0, -2):
+                            if not self.check_castling_availability("long"):
+                                break
                         move = Move(old_pos, new_pos, self.pieces)
                         self.pieces = move.make_move()
+                        self.update_castling_info(old_pos)
                         self.moveLog.append((old_pos, new_pos))
                         self.active_color, self.non_active_color = self.non_active_color, self.active_color
                     to_move = False
@@ -112,7 +121,7 @@ class Gameplay:
                 return True
         return False
 
-    def check_move_correctness(self, start_pos, possible_pos):
+    def check_move_correctness(self, start_pos, possible_pos):  # sprawdza czy PO RUCHU BEDZIE OK
         cp_init_pos = {}    # dla pewnosci dzialam na kopii bo nie pamietam jak sie zachowuje przypisanie slownika
         for pos, img in self.pieces.items():
             cp_init_pos[pos] = img
@@ -134,6 +143,39 @@ class Gameplay:
         self.pieces = move_back.make_move()
         self.pieces = cp_init_pos
         return king_safe
+
+    def check_castling_availability(self, length):
+        if self.find_any_attacker():
+            return False
+        if length == "short" and self.active_color == "w":
+            if (7, 5) in self.pieces.keys() or (7, 6) in self.pieces.keys():
+                return False
+        if length == "long" and self.active_color == "w":
+            if (7, 1) in self.pieces.keys() or (7, 2) in self.pieces.keys() or (7, 3) in self.pieces.keys():
+                return False
+        if length == "short" and self.active_color == "b":
+            if (0, 5) in self.pieces.keys() or (0, 6) in self.pieces.keys():
+                return False
+        if length == "long" and self.active_color == "b":
+            if (0, 1) in self.pieces.keys() or (0, 2) in self.pieces.keys() or (0, 3) in self.pieces.keys():
+                return False
+        return True
+
+    def update_castling_info(self, old_pos):
+        if old_pos == (7, 4):
+            self.white_long_castling = False
+            self.white_short_castling = False
+        if old_pos == (0, 4):
+            self.black_long_castling = False
+            self.black_short_castling = False
+        if old_pos == (7, 0):
+            self.white_long_castling = False
+        if old_pos == (7, 7):
+            self.white_short_castling = False
+        if old_pos == (0, 0):
+            self.black_long_castling = False
+        if old_pos == (0, 7):
+            self.black_short_castling = False
 
     def get_last_move(self):  # zwraca ostatni zapisany ruch w movelogu i figure ktora go wykonala
         if len(self.moveLog) != 0 and self.moveLog[-1][1] in self.pieces.keys():
@@ -164,6 +206,24 @@ class Move:
         self.new_pos = new_pos
         self.Gameplay = Gameplay
 
+    def check_castling(self, board):
+        img_name = board[self.old_pos]
+        color = img_name[4]
+        fig = img_name[5]
+        move_diff = (self.new_pos[0]-self.old_pos[0], self.new_pos[1]-self.old_pos[1])
+        if fig == "K" and move_diff == (0, 2) and color == "w":
+            board[(7, 5)] = board[(7, 7)]
+            board.pop((7, 7))
+        if fig == "K" and move_diff == (0, -2) and color == "w":
+            board[(7, 3)] = board[(7, 0)]
+            board.pop((7, 0))
+        if fig == "K" and move_diff == (0, 2) and color == "b":
+            board[(0, 5)] = board[(0, 7)]
+            board.pop((0, 7))
+        if fig == "K" and move_diff == (0, -2) and color == "b":
+            board[(0, 3)] = board[(0, 0)]
+            board.pop((0, 0))
+
     def check_en_passant(self, board):
         img_name = board[self.old_pos]
         color = img_name[4]
@@ -177,13 +237,13 @@ class Move:
 
     def make_move(self):
         if self.old_pos in self.previous_board.keys():
-            # print("RUCH")
+            # print("RUCH",self.old_pos,self.new_pos)
             # self.previous_board = Gameplay.get_pieces()
             new_board = self.previous_board
             col, row = self.check_en_passant(new_board)
             if col is not None:
-                print("ENPASSANT")
                 new_board.pop((col, row))
+            self.check_castling(new_board)
             # print(self.previous_board)
             fig_val = self.previous_board[self.old_pos]
             new_board.pop(self.old_pos)

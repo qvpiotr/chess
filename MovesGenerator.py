@@ -18,7 +18,20 @@ class MovesGenerator:
         self.generate_rock_moves(valid_moves)
         self.generate_queen_moves(valid_moves)
         self.generate_king_moves(valid_moves)
+        self.generate_castling(valid_moves)
         return valid_moves
+
+    def generate_castling(self, valid_moves):
+        if self.gameplay.active_color == "w":
+            if self.gameplay.white_short_castling:
+                valid_moves.append(((7, 4), (7, 6)))
+            if self.gameplay.white_long_castling:
+                valid_moves.append(((7, 4), (7, 2)))
+        if self.gameplay.active_color == "b":
+            if self.gameplay.black_short_castling:
+                valid_moves.append(((0, 4), (0, 6)))
+            if self.gameplay.black_long_castling:
+                valid_moves.append(((0, 4), (0, 2)))
 
     def generate_pawn_attacks(self, valid_moves):
         for pos, img in self.gameplay.pieces.items():
