@@ -1,12 +1,13 @@
+def in_borders(pos):
+    if pos[0] < 0 or pos[0] > 7 or pos[1] < 0 or pos[1] > 7:
+        return False
+    return True
+
+
 class MovesGenerator:
 
     def __init__(self, gameplay):
         self.gameplay = gameplay
-
-    def in_borders(self, pos):
-        if pos[0] < 0 or pos[0] > 7 or pos[1] < 0 or pos[1] > 7:
-            return False
-        return True
 
     def generate_valid_moves(self):
         valid_moves = []
@@ -32,6 +33,24 @@ class MovesGenerator:
                 if (pos[0] - 1, pos[1] - 1) in self.gameplay.pieces.keys() \
                         and self.gameplay.pieces.get((pos[0] - 1, pos[1] - 1))[4] == "b":
                     valid_moves.append(((pos[0], pos[1]), (pos[0] - 1, pos[1] - 1)))
+                # bicie w przelocie
+                last_black_move, figure = self.gameplay.get_last_move()
+                if last_black_move is None:
+                    continue
+                start_pos = last_black_move[0]
+                end_pos = last_black_move[1]
+                diff = (end_pos[0]-start_pos[0], end_pos[1]-start_pos[1])
+                if diff == (2, 0) and figure == "P":
+                    if (end_pos[0], end_pos[1] - 1) in self.gameplay.pieces.keys():
+                        fig_type = self.gameplay.pieces[end_pos[0], end_pos[1]-1][5]
+                        fig_color = self.gameplay.pieces[end_pos[0], end_pos[1]-1][4]
+                        if fig_type == "P" and fig_color == self.gameplay.active_color:
+                            valid_moves.append(((end_pos[0], end_pos[1]-1), (end_pos[0]-1, end_pos[1])))
+                    if (end_pos[0], end_pos[1] + 1) in self.gameplay.pieces.keys():
+                        fig_type = self.gameplay.pieces[end_pos[0], end_pos[1]+1][5]
+                        fig_color = self.gameplay.pieces[end_pos[0], end_pos[1]+1][4]
+                        if fig_type == "P" and fig_color == self.gameplay.active_color:
+                            valid_moves.append(((end_pos[0], end_pos[1]+1), (end_pos[0]-1, end_pos[1])))
             else:
                 if (pos[0] + 1, pos[1] + 1) in self.gameplay.pieces.keys() \
                         and self.gameplay.pieces.get((pos[0] + 1, pos[1] + 1))[4] == "w":
@@ -39,6 +58,24 @@ class MovesGenerator:
                 if (pos[0] + 1, pos[1] - 1) in self.gameplay.pieces.keys() \
                         and self.gameplay.pieces.get((pos[0] + 1, pos[1] - 1))[4] == "w":
                     valid_moves.append(((pos[0], pos[1]), (pos[0] + 1, pos[1] - 1)))
+                # bicie w przelocie
+                last_white_move, figure = self.gameplay.get_last_move()
+                if last_white_move is None:
+                    continue
+                start_pos = last_white_move[0]
+                end_pos = last_white_move[1]
+                diff = (end_pos[0] - start_pos[0], end_pos[1] - start_pos[1])
+                if diff == (-2, 0) and figure == "P":
+                    if (end_pos[0], end_pos[1] - 1) in self.gameplay.pieces.keys():
+                        fig_type = self.gameplay.pieces[end_pos[0], end_pos[1] - 1][5]
+                        fig_color = self.gameplay.pieces[end_pos[0], end_pos[1] - 1][4]
+                        if fig_type == "P" and fig_color == self.gameplay.active_color:
+                            valid_moves.append(((end_pos[0], end_pos[1] - 1), (end_pos[0] + 1, end_pos[1])))
+                    if (end_pos[0], end_pos[1] + 1) in self.gameplay.pieces.keys():
+                        fig_type = self.gameplay.pieces[end_pos[0], end_pos[1] + 1][5]
+                        fig_color = self.gameplay.pieces[end_pos[0], end_pos[1] + 1][4]
+                        if fig_type == "P" and fig_color == self.gameplay.active_color:
+                            valid_moves.append(((end_pos[0], end_pos[1] + 1), (end_pos[0] + 1, end_pos[1])))
 
     def generate_pawn_moves(self, valid_moves):
         for pos, img in self.gameplay.pieces.items():
@@ -84,7 +121,7 @@ class MovesGenerator:
                     vector = (x, y)
                     jump = 1
                     possible_pos = (jump*vector[0]+pos[0], jump*vector[1]+pos[1])
-                    while self.in_borders(possible_pos) and possible_pos not in self.gameplay.pieces.keys():
+                    while in_borders(possible_pos) and possible_pos not in self.gameplay.pieces.keys():
                         valid_moves.append((pos, possible_pos))
                         jump += 1
                         possible_pos = (jump * vector[0] + pos[0], jump * vector[1] + pos[1])
@@ -104,7 +141,7 @@ class MovesGenerator:
                     vector = (x, y)
                     jump = 1
                     possible_pos = (jump*vector[0]+pos[0], jump*vector[1]+pos[1])
-                    while self.in_borders(possible_pos) and possible_pos not in self.gameplay.pieces.keys():
+                    while in_borders(possible_pos) and possible_pos not in self.gameplay.pieces.keys():
                         valid_moves.append((pos, possible_pos))
                         jump += 1
                         possible_pos = (jump * vector[0] + pos[0], jump * vector[1] + pos[1])
@@ -120,11 +157,11 @@ class MovesGenerator:
             fig = img[5]
             if fig != "Q" or color != self.gameplay.active_color:
                 continue
-            for x, y in [(0, 1), (1, 0), (-1, 0), (0, -1), (1, 1), (1, -1),(-1, 1), (-1, -1)]:
+            for x, y in [(0, 1), (1, 0), (-1, 0), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)]:
                     vector = (x, y)
                     jump = 1
                     possible_pos = (jump*vector[0]+pos[0], jump*vector[1]+pos[1])
-                    while self.in_borders(possible_pos) and possible_pos not in self.gameplay.pieces.keys():
+                    while in_borders(possible_pos) and possible_pos not in self.gameplay.pieces.keys():
                         valid_moves.append((pos, possible_pos))
                         jump += 1
                         possible_pos = (jump * vector[0] + pos[0], jump * vector[1] + pos[1])
@@ -140,11 +177,11 @@ class MovesGenerator:
             fig = img[5]
             if fig != "K" or color != self.gameplay.active_color:
                 continue
-            for x, y in [(0, 1), (1, 0), (-1, 0), (0, -1), (1, 1), (1, -1),(-1, 1), (-1, -1)]:
+            for x, y in [(0, 1), (1, 0), (-1, 0), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)]:
                 vector = (x, y)
                 possible_pos = (vector[0] + pos[0], vector[1] + pos[1])
-                if self.in_borders(possible_pos):
+                if in_borders(possible_pos):
                     if possible_pos in self.gameplay.pieces.keys() \
                             and self.gameplay.pieces.get(possible_pos)[4] == self.gameplay.active_color:
                         continue
-                    valid_moves.append((pos,possible_pos))
+                    valid_moves.append((pos, possible_pos))
