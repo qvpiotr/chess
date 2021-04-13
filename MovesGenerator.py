@@ -1,3 +1,5 @@
+# Sprawdza czy podana pozycja jest na szachownicy
+
 def in_borders(pos):
     if pos[0] < 0 or pos[0] > 7 or pos[1] < 0 or pos[1] > 7:
         return False
@@ -8,6 +10,9 @@ class MovesGenerator:
 
     def __init__(self, gameplay):
         self.gameplay = gameplay
+
+    # Generuje wszystkie ruchy zgodne z zasadami, ale mogą być w danej sytuacji niepoprawne
+    # (poprawność sprawdza sobie gameplay)
 
     def generate_valid_moves(self):
         valid_moves = []
@@ -21,6 +26,8 @@ class MovesGenerator:
         self.generate_castling(valid_moves)
         return valid_moves
 
+    # Generowanie roszad
+
     def generate_castling(self, valid_moves):
         if self.gameplay.active_color == "w":
             if self.gameplay.white_short_castling:
@@ -32,6 +39,8 @@ class MovesGenerator:
                 valid_moves.append(((0, 4), (0, 6)))
             if self.gameplay.black_long_castling:
                 valid_moves.append(((0, 4), (0, 2)))
+
+    # Generowanie bić piona
 
     def generate_pawn_attacks(self, valid_moves):
         for pos, img in self.gameplay.pieces.items():
@@ -90,6 +99,8 @@ class MovesGenerator:
                         if fig_type == "P" and fig_color == self.gameplay.active_color:
                             valid_moves.append(((end_pos[0], end_pos[1] + 1), (end_pos[0] + 1, end_pos[1])))
 
+    # Generowanie ruchów piona naprzód
+
     def generate_pawn_moves(self, valid_moves):
         for pos, img in self.gameplay.pieces.items():
             color = img[4]
@@ -107,6 +118,8 @@ class MovesGenerator:
                 if pos[0] == 1 and (pos[0] + 2, pos[1]) not in self.gameplay.pieces.keys():
                     valid_moves.append(((pos[0], pos[1]), (pos[0] + 2, pos[1])))
 
+    # Generowanie ruchów konia
+
     def generate_knight_moves(self, valid_moves):
         possible_vecs = [(-2, 1), (-1, 2), (1, 2), (2, 1), (2, -1), (1, -2), (-1, -2), (-2, -1)]
         for pos, img in self.gameplay.pieces.items():
@@ -122,6 +135,8 @@ class MovesGenerator:
                         self.gameplay.pieces.get(new_pos)[4] == self.gameplay.active_color:
                     continue
                 valid_moves.append((pos, new_pos))
+
+    # Generowanie ruchów gońca
 
     def generate_bishop_moves(self, valid_moves):
         for pos, img in self.gameplay.pieces.items():
@@ -144,6 +159,8 @@ class MovesGenerator:
                         else:
                             valid_moves.append((pos, possible_pos))
 
+    # Generowanie ruchów wieży
+
     def generate_rock_moves(self, valid_moves):
         for pos, img in self.gameplay.pieces.items():
             color = img[4]
@@ -164,6 +181,8 @@ class MovesGenerator:
                         else:
                             valid_moves.append((pos, possible_pos))
 
+    # Generowanie ruchów Hetmana
+
     def generate_queen_moves(self, valid_moves):
         for pos, img in self.gameplay.pieces.items():
             color = img[4]
@@ -183,6 +202,8 @@ class MovesGenerator:
                             pass
                         else:
                             valid_moves.append((pos, possible_pos))
+
+    # Generowanie ruchów króla
 
     def generate_king_moves(self, valid_moves):
         for pos, img in self.gameplay.pieces.items():

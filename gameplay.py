@@ -30,6 +30,8 @@ class Gameplay:
             (6, 4): "img/wP.png", (6, 5): "img/wP.png", (6, 6): "img/wP.png", (6, 7): "img/wP.png"
         }
 
+    # Główna funkcja realizująca grę dwóch osób
+
     def two_players_game(self):
         old_pos = None
         to_move = False
@@ -83,6 +85,8 @@ class Gameplay:
                     self.draw_pieces()
             pygame.display.flip()
 
+    # Funkcja odpowiadająca za rysowanie planszy
+
     def draw_chessboard(self):
         colors = [(215, 199, 151), (164, 124, 72)]
         for row in range(8):
@@ -90,11 +94,15 @@ class Gameplay:
                 pygame.draw.rect(self.board_screen, colors[(col + row) % 2],
                                  (col * self.field_side, row * self.field_side, self.field_side, self.field_side))
 
+    # Funkcja odpowiadająca za rysowanie figur
+
     def draw_pieces(self):
         for pos, img_name in self.pieces.items():
             image = pygame.image.load(img_name)
             # image = pygame.transform.scale(image, (self.field_side, self.field_side))
             self.board_screen.blit(image, (pos[1] * self.field_side, pos[0] * self.field_side))
+
+    # Funkcja do rozstrzygania rezultatu meczu oraz możliwości roszady
 
     def find_any_attacker(self):
         self.active_color, self.non_active_color = self.non_active_color, self.active_color
@@ -115,13 +123,18 @@ class Gameplay:
         self.active_color, self.non_active_color = self.non_active_color, self.active_color
         return attacker
 
+    # Warunek zakończenia partii, któryś gracz nie ma żadnego poprawnego ruchu
+
     def find_any_possible_move(self, valid_moves):
         for start_pos, possible_pos in valid_moves:
             if self.check_move_correctness(start_pos, possible_pos):
                 return True
         return False
 
-    def check_move_correctness(self, start_pos, possible_pos):  # sprawdza czy PO RUCHU BEDZIE OK
+    # Wykonujemy ruch, który chcemy, sprawdzamy czy rywal ma na widoku naszego króla, jeśli tak to ruch
+    # jest niedopuszczalny
+
+    def check_move_correctness(self, start_pos, possible_pos):
         cp_init_pos = {}    # dla pewnosci dzialam na kopii bo nie pamietam jak sie zachowuje przypisanie slownika
         for pos, img in self.pieces.items():
             cp_init_pos[pos] = img
@@ -144,6 +157,8 @@ class Gameplay:
         self.pieces = cp_init_pos
         return king_safe
 
+    # Funkcja do sprawdzania czy można zrobić roszadę
+
     def check_castling_availability(self, length):
         if self.find_any_attacker():
             return False
@@ -161,6 +176,8 @@ class Gameplay:
                 return False
         return True
 
+    # Aktualizacja możliwości roszady
+
     def update_castling_info(self, old_pos):
         if old_pos == (7, 4):
             self.white_long_castling = False
@@ -177,7 +194,9 @@ class Gameplay:
         if old_pos == (0, 7):
             self.black_short_castling = False
 
-    def get_last_move(self):  # zwraca ostatni zapisany ruch w movelogu i figure ktora go wykonala
+    # pobranie ostatniego ruchu z moveloga i figury go wykonujacej
+
+    def get_last_move(self):
         if len(self.moveLog) != 0 and self.moveLog[-1][1] in self.pieces.keys():
             return self.moveLog[-1], self.pieces[self.moveLog[-1][1]][5]
         return None, None
@@ -206,23 +225,30 @@ class Move:
         self.new_pos = new_pos
         self.Gameplay = Gameplay
 
+    # Jesli ruch jest roszadą to ta funkcja z automatu przestawi wieżę
+
     def check_castling(self, board):
         img_name = board[self.old_pos]
         color = img_name[4]
         fig = img_name[5]
         move_diff = (self.new_pos[0]-self.old_pos[0], self.new_pos[1]-self.old_pos[1])
-        if fig == "K" and move_diff == (0, 2) and color == "w":
-            board[(7, 5)] = board[(7, 7)]
-            board.pop((7, 7))
-        if fig == "K" and move_diff == (0, -2) and color == "w":
-            board[(7, 3)] = board[(7, 0)]
-            board.pop((7, 0))
-        if fig == "K" and move_diff == (0, 2) and color == "b":
-            board[(0, 5)] = board[(0, 7)]
-            board.pop((0, 7))
-        if fig == "K" and move_diff == (0, -2) and color == "b":
-            board[(0, 3)] = board[(0, 0)]
-            board.pop((0, 0))
+        if self.old_pos == (7, 4):
+            if fig == "K" and move_diff == (0, 2) and color == "w":
+                board[(7, 5)] = board[(7, 7)]
+                board.pop((7, 7))
+            if fig == "K" and move_diff == (0, -2) and color == "w":
+                board[(7, 3)] = board[(7, 0)]
+                board.pop((7, 0))
+        if self.old_pos == (0, 4):
+            print("tu")
+            if fig == "K" and move_diff == (0, 2) and color == "b":
+                board[(0, 5)] = board[(0, 7)]
+                board.pop((0, 7))
+            if fig == "K" and move_diff == (0, -2) and color == "b":
+                board[(0, 3)] = board[(0, 0)]
+                board.pop((0, 0))
+
+    # Daje informację czy wykonano bicie w przelocie, jeśli tak to w make_move odpowiedni pion zostanie zdjęty
 
     def check_en_passant(self, board):
         img_name = board[self.old_pos]
@@ -234,6 +260,8 @@ class Move:
         if pos_diff in [(1, -1), (1, 1)] and self.new_pos not in board.keys() and color == "b" and fig == "P":
             return self.new_pos[0] - 1, self.new_pos[1]
         return None, None
+
+    # Wykonanie ruchu
 
     def make_move(self):
         if self.old_pos in self.previous_board.keys():
