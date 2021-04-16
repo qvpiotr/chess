@@ -110,12 +110,14 @@ class MovesGenerator:
             if color == "w":
                 if (pos[0] - 1, pos[1]) not in self.gameplay.pieces.keys():
                     valid_moves.append(((pos[0], pos[1]), (pos[0] - 1, pos[1])))
-                if pos[0] == 6 and (pos[0] - 2, pos[1]) not in self.gameplay.pieces.keys():
+                if pos[0] == 6 and (pos[0] - 2, pos[1]) not in self.gameplay.pieces.keys() and (pos[0] - 1, pos[1]) not \
+                        in self.gameplay.pieces.keys():
                     valid_moves.append(((pos[0], pos[1]), (pos[0] - 2, pos[1])))
             else:
                 if (pos[0] + 1, pos[1]) not in self.gameplay.pieces.keys():
                     valid_moves.append(((pos[0], pos[1]), (pos[0] + 1, pos[1])))
-                if pos[0] == 1 and (pos[0] + 2, pos[1]) not in self.gameplay.pieces.keys():
+                if pos[0] == 1 and (pos[0] + 2, pos[1]) not in self.gameplay.pieces.keys() and (pos[0] + 1, pos[1]) not \
+                        in self.gameplay.pieces.keys():
                     valid_moves.append(((pos[0], pos[1]), (pos[0] + 2, pos[1])))
 
     # Generowanie ruchów konia

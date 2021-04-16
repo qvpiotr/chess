@@ -1,7 +1,7 @@
 import pygame
 import sys
 from MovesGenerator import *
-
+from random import randint
 
 class Gameplay:
 
@@ -85,6 +85,86 @@ class Gameplay:
                     self.draw_pieces()
             pygame.display.flip()
 
+    def game_with_ai(self, player_color):
+        old_pos = None
+        to_move = False
+        self.board_screen.fill((0, 0, 0))
+        self.draw_chessboard()
+        self.draw_pieces()
+        valid_moves = self.move_generator.generate_valid_moves()
+        while 1:
+            if self.active_color == player_color:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        sys.exit()
+                    elif event.type == pygame.MOUSEBUTTONUP and not to_move:
+                        click_pos = pygame.mouse.get_pos()
+                        old_pos = ((click_pos[1]) // self.field_side, click_pos[0] // self.field_side)
+                        print(click_pos)
+                        print("FROM:", old_pos)
+                        if old_pos in self.pieces.keys() and self.pieces.get(old_pos)[4] == self.active_color:
+                            pygame.draw.rect(self.board_screen, (255, 255, 0),
+                                             (old_pos[1] * self.field_side, old_pos[0] * self.field_side, self.field_side,
+                                              self.field_side))
+                            self.draw_pieces()
+                            to_move = True
+                    elif event.type == pygame.MOUSEBUTTONUP and to_move:
+                        click_pos = pygame.mouse.get_pos()
+                        new_pos = ((click_pos[1]) // self.field_side, click_pos[0] // self.field_side)
+                        print(click_pos)
+                        print("TO:", new_pos)
+                        if (old_pos, new_pos) in valid_moves and self.check_move_correctness(old_pos, new_pos):
+                            fig = self.pieces[old_pos][5]
+                            move_diff = (new_pos[0]-old_pos[0], new_pos[1]-old_pos[1])
+                            if fig == "K" and move_diff == (0, 2):
+                                if not self.check_castling_availability("short"):
+                                    break
+                            if fig == "K" and move_diff == (0, -2):
+                                if not self.check_castling_availability("long"):
+                                    break
+                            move = Move(old_pos, new_pos, self.pieces)
+                            self.pieces = move.make_move()
+                            self.update_castling_info(old_pos, new_pos)
+                            self.moveLog.append((old_pos, new_pos))
+                            self.active_color, self.non_active_color = self.non_active_color, self.active_color
+                        to_move = False
+                        valid_moves = self.move_generator.generate_valid_moves()
+                        if not self.find_any_possible_move(valid_moves):
+                            print("NO MOVES FOR COLOR", self.active_color)
+                            if self.find_any_attacker():
+                                print("CHECKMATE")
+                            else:
+                                print("STALEMATE")
+                        self.draw_chessboard()
+                        self.draw_pieces()
+            else:
+                random_bot_move_index = randint(0, len(valid_moves) - 1)
+                bot_move = valid_moves[random_bot_move_index]
+                if self.check_move_correctness(bot_move[0], bot_move[1]):
+                    fig = self.pieces[bot_move[0]][5]
+                    move_diff = (bot_move[1][0] - bot_move[0][0], bot_move[1][1] - bot_move[0][1])
+                    if fig == "K" and move_diff == (0, 2):
+                        if not self.check_castling_availability("short"):
+                            continue
+                    if fig == "K" and move_diff == (0, -2):
+                        if not self.check_castling_availability("long"):
+                            continue
+                    move = Move(bot_move[0], bot_move[1], self.pieces)
+                    self.pieces = move.make_move()
+                    self.update_castling_info(bot_move[0], bot_move[1])
+                    self.moveLog.append((bot_move[0], bot_move[1]))
+                    self.active_color, self.non_active_color = self.non_active_color, self.active_color
+                valid_moves = self.move_generator.generate_valid_moves()
+                if not self.find_any_possible_move(valid_moves):
+                    print("NO MOVES FOR COLOR", self.active_color)
+                    if self.find_any_attacker():
+                        print("CHECKMATE")
+                    else:
+                        print("STALEMATE")
+                self.draw_chessboard()
+                self.draw_pieces()
+            pygame.display.flip()
+
     # Funkcja odpowiadająca za rysowanie planszy
 
     def draw_chessboard(self):
@@ -128,6 +208,7 @@ class Gameplay:
     def find_any_possible_move(self, valid_moves):
         for start_pos, possible_pos in valid_moves:
             if self.check_move_correctness(start_pos, possible_pos):
+                print("DOBRY RUCH: ",start_pos,possible_pos)
                 return True
         return False
 
@@ -135,6 +216,9 @@ class Gameplay:
     # jest niedopuszczalny
 
     def check_move_correctness(self, start_pos, possible_pos):
+        pos_diff = (abs(possible_pos[0] - start_pos[0]), abs(possible_pos[1] - start_pos[1]))
+        if self.pieces[start_pos][5] == "K" and pos_diff == (0, 2) and self.find_any_attacker():
+            return False
         cp_init_pos = {}    # dla pewnosci dzialam na kopii bo nie pamietam jak sie zachowuje przypisanie slownika
         for pos, img in self.pieces.items():
             cp_init_pos[pos] = img
