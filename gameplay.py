@@ -70,7 +70,7 @@ class Gameplay:
                                 break
                         move = Move(old_pos, new_pos, self.pieces)
                         self.pieces = move.make_move()
-                        self.update_castling_info(old_pos)
+                        self.update_castling_info(old_pos, new_pos)
                         self.moveLog.append((old_pos, new_pos))
                         self.active_color, self.non_active_color = self.non_active_color, self.active_color
                     to_move = False
@@ -178,20 +178,20 @@ class Gameplay:
 
     # Aktualizacja możliwości roszady
 
-    def update_castling_info(self, old_pos):
+    def update_castling_info(self, old_pos, new_pos):
         if old_pos == (7, 4):
             self.white_long_castling = False
             self.white_short_castling = False
         if old_pos == (0, 4):
             self.black_long_castling = False
             self.black_short_castling = False
-        if old_pos == (7, 0):
+        if old_pos == (7, 0) or new_pos == (7, 0):
             self.white_long_castling = False
-        if old_pos == (7, 7):
+        if old_pos == (7, 7) or new_pos == (7, 7):
             self.white_short_castling = False
-        if old_pos == (0, 0):
+        if old_pos == (0, 0) or new_pos == (0, 0):
             self.black_long_castling = False
-        if old_pos == (0, 7):
+        if old_pos == (0, 7) or new_pos == (0, 7):
             self.black_short_castling = False
 
     # pobranie ostatniego ruchu z moveloga i figury go wykonujacej
