@@ -142,9 +142,13 @@ class Gameplay:
                         self.draw_chessboard()
                         self.draw_pieces()
             else:
-                ai = AI(self, self.depth)
-                ai.nega_max_alpha_beta(valid_moves, self.depth, -1 if player_color == "w" else 1, -10000, 10000)
-                bot_move = ai.get_next_move()
+                depth = self.depth+2
+                bot_move = None
+                while bot_move is None and depth > 0:
+                    depth -= 2
+                    ai = AI(self, depth)
+                    ai.nega_max_alpha_beta(valid_moves, depth, -1 if player_color == "w" else 1, -10000, 10000)
+                    bot_move = ai.get_next_move()
                 print("BOT MOVE ", bot_move)
                 if bot_move is None:
                     break
