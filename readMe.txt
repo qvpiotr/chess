@@ -1,4 +1,1 @@
-Ruchy jeszcze nieobsłużone:
-    - promocja piona na ostatniej linii
-
-Starałem się wszystko przetestować czy działa i powinno być ok, jakbyś znalazł jakieś błędy daj znać.
+Eval tables to fix (or delete).

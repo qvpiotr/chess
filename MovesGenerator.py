@@ -16,14 +16,14 @@ class MovesGenerator:
 
     def generate_valid_moves(self):
         valid_moves = []
-        self.generate_pawn_attacks(valid_moves)
-        self.generate_pawn_moves(valid_moves)
-        self.generate_knight_moves(valid_moves)
-        self.generate_bishop_moves(valid_moves)
-        self.generate_rock_moves(valid_moves)
         self.generate_queen_moves(valid_moves)
         self.generate_king_moves(valid_moves)
+        self.generate_bishop_moves(valid_moves)
+        self.generate_rock_moves(valid_moves)
         self.generate_castling(valid_moves)
+        self.generate_knight_moves(valid_moves)
+        self.generate_pawn_attacks(valid_moves)
+        self.generate_pawn_moves(valid_moves)
         return valid_moves
 
     # Generowanie roszad
@@ -43,6 +43,7 @@ class MovesGenerator:
     # Generowanie bić piona
 
     def generate_pawn_attacks(self, valid_moves):
+        # print("Piony w pawn attacks", self.gameplay.pieces)
         for pos, img in self.gameplay.pieces.items():
             color = img[4]
             fig = img[5]

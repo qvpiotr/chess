@@ -1,7 +1,8 @@
-import pygame
 import sys
 from MovesGenerator import *
-from random import randint
+from AI import *
+from move import *
+
 
 class Gameplay:
 
@@ -19,6 +20,7 @@ class Gameplay:
         self.white_long_castling = True
         self.black_short_castling = True
         self.black_long_castling = True
+        self.depth = None
         self.pieces = {
             (0, 0): "img/bR.png", (0, 1): "img/bN.png", (0, 2): "img/bB.png", (0, 3): "img/bQ.png",
             (0, 4): "img/bK.png", (0, 5): "img/bB.png", (0, 6): "img/bN.png", (0, 7): "img/bR.png",
@@ -133,13 +135,19 @@ class Gameplay:
                             print("NO MOVES FOR COLOR", self.active_color)
                             if self.find_any_attacker():
                                 print("CHECKMATE")
+                                break
                             else:
                                 print("STALEMATE")
+                                break
                         self.draw_chessboard()
                         self.draw_pieces()
             else:
-                random_bot_move_index = randint(0, len(valid_moves) - 1)
-                bot_move = valid_moves[random_bot_move_index]
+                ai = AI(self, self.depth)
+                ai.nega_max_alpha_beta(valid_moves, self.depth, -1 if player_color == "w" else 1, -10000, 10000)
+                bot_move = ai.get_next_move()
+                print("BOT MOVE ", bot_move)
+                if bot_move is None:
+                    break
                 if self.check_move_correctness(bot_move[0], bot_move[1]):
                     fig = self.pieces[bot_move[0]][5]
                     move_diff = (bot_move[1][0] - bot_move[0][0], bot_move[1][1] - bot_move[0][1])
@@ -150,6 +158,7 @@ class Gameplay:
                         if not self.check_castling_availability("long"):
                             continue
                     move = Move(bot_move[0], bot_move[1], self.pieces)
+                    move.set_non_player_move()
                     self.pieces = move.make_move()
                     self.update_castling_info(bot_move[0], bot_move[1])
                     self.moveLog.append((bot_move[0], bot_move[1]))
@@ -159,11 +168,27 @@ class Gameplay:
                     print("NO MOVES FOR COLOR", self.active_color)
                     if self.find_any_attacker():
                         print("CHECKMATE")
+                        break
                     else:
                         print("STALEMATE")
+                        break
                 self.draw_chessboard()
                 self.draw_pieces()
             pygame.display.flip()
+        if self.find_any_attacker():
+            print(self.non_active_color, " wins")
+        else:
+            print("tie")
+        self.draw_chessboard()
+        self.draw_pieces()
+        while 1:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+            pygame.display.flip()
+
+    def set_depth(self, depth):
+        self.depth = depth
 
     # Funkcja odpowiadająca za rysowanie planszy
 
@@ -203,12 +228,22 @@ class Gameplay:
         self.active_color, self.non_active_color = self.non_active_color, self.active_color
         return attacker
 
+    def pos_in_danger(self, position):
+        self.active_color, self.non_active_color = self.non_active_color, self.active_color
+        attacker = False
+        moves = self.move_generator.generate_valid_moves()
+        for start_pos, possible_pos in moves:
+            if possible_pos == position:
+                attacker = True
+                break
+        self.active_color, self.non_active_color = self.non_active_color, self.active_color
+        return attacker
+
     # Warunek zakończenia partii, któryś gracz nie ma żadnego poprawnego ruchu
 
     def find_any_possible_move(self, valid_moves):
         for start_pos, possible_pos in valid_moves:
             if self.check_move_correctness(start_pos, possible_pos):
-                print("DOBRY RUCH: ",start_pos,possible_pos)
                 return True
         return False
 
@@ -216,14 +251,25 @@ class Gameplay:
     # jest niedopuszczalny
 
     def check_move_correctness(self, start_pos, possible_pos):
-        pos_diff = (abs(possible_pos[0] - start_pos[0]), abs(possible_pos[1] - start_pos[1]))
-        if self.pieces[start_pos][5] == "K" and pos_diff == (0, 2) and self.find_any_attacker():
+        if start_pos not in self.pieces:
             return False
+        pos_diff = (abs(possible_pos[0] - start_pos[0]), abs(possible_pos[1] - start_pos[1])) # roszada
+        king_pos = [pos for pos, img_name in self.pieces.items() if img_name == "img/"+self.active_color+"K.png"]
+        if (king_pos[0] == (7, 4) and self.active_color == "w") or (king_pos[0] == (0, 4) and self.active_color =="b"):
+            if self.pieces[start_pos][5] == "K" and pos_diff == (0, 2):
+                castling_type = "short"
+                if possible_pos[1] == 2:
+                    castling_type = "long"
+                if not self.check_castling_availability(castling_type):
+                    return False
+                if self.pos_in_danger(possible_pos):
+                    return False
         cp_init_pos = {}    # dla pewnosci dzialam na kopii bo nie pamietam jak sie zachowuje przypisanie slownika
         for pos, img in self.pieces.items():
             cp_init_pos[pos] = img
         king_safe = True
         move = Move(start_pos, possible_pos, self.pieces)
+        move.set_non_player_move()
         self.pieces = move.make_move()
         self.active_color, self.non_active_color = self.non_active_color, self.active_color
         valid_moves = self.move_generator.generate_valid_moves()
@@ -237,6 +283,7 @@ class Gameplay:
                 king_safe = False
         self.active_color, self.non_active_color = self.non_active_color, self.active_color
         move_back = Move(possible_pos, start_pos, self.pieces)
+        move.set_non_player_move()
         self.pieces = move_back.make_move()
         self.pieces = cp_init_pos
         return king_safe
@@ -249,14 +296,22 @@ class Gameplay:
         if length == "short" and self.active_color == "w":
             if (7, 5) in self.pieces.keys() or (7, 6) in self.pieces.keys():
                 return False
+            if (7, 7) not in self.pieces.keys():
+                return False
         if length == "long" and self.active_color == "w":
             if (7, 1) in self.pieces.keys() or (7, 2) in self.pieces.keys() or (7, 3) in self.pieces.keys():
+                return False
+            if (7, 0) not in self.pieces.keys():
                 return False
         if length == "short" and self.active_color == "b":
             if (0, 5) in self.pieces.keys() or (0, 6) in self.pieces.keys():
                 return False
+            if (0, 7) not in self.pieces.keys():
+                return False
         if length == "long" and self.active_color == "b":
             if (0, 1) in self.pieces.keys() or (0, 2) in self.pieces.keys() or (0, 3) in self.pieces.keys():
+                return False
+            if (0, 0) not in self.pieces.keys():
                 return False
         return True
 
@@ -300,66 +355,3 @@ class Gameplay:
     #     if len(self.moveLog) != 0:
     #         move = self.moveLog.pop()
 
-
-class Move:
-
-    def __init__(self, old_pos, new_pos, previous_board):
-        self.previous_board = previous_board
-        self.old_pos = old_pos
-        self.new_pos = new_pos
-        self.Gameplay = Gameplay
-
-    # Jesli ruch jest roszadą to ta funkcja z automatu przestawi wieżę
-
-    def check_castling(self, board):
-        img_name = board[self.old_pos]
-        color = img_name[4]
-        fig = img_name[5]
-        move_diff = (self.new_pos[0]-self.old_pos[0], self.new_pos[1]-self.old_pos[1])
-        if self.old_pos == (7, 4):
-            if fig == "K" and move_diff == (0, 2) and color == "w":
-                board[(7, 5)] = board[(7, 7)]
-                board.pop((7, 7))
-            if fig == "K" and move_diff == (0, -2) and color == "w":
-                board[(7, 3)] = board[(7, 0)]
-                board.pop((7, 0))
-        if self.old_pos == (0, 4):
-            print("tu")
-            if fig == "K" and move_diff == (0, 2) and color == "b":
-                board[(0, 5)] = board[(0, 7)]
-                board.pop((0, 7))
-            if fig == "K" and move_diff == (0, -2) and color == "b":
-                board[(0, 3)] = board[(0, 0)]
-                board.pop((0, 0))
-
-    # Daje informację czy wykonano bicie w przelocie, jeśli tak to w make_move odpowiedni pion zostanie zdjęty
-
-    def check_en_passant(self, board):
-        img_name = board[self.old_pos]
-        color = img_name[4]
-        fig = img_name[5]
-        pos_diff = (self.new_pos[0] - self.old_pos[0], self.new_pos[1] - self.old_pos[1])
-        if pos_diff in [(-1, -1), (-1, 1)] and self.new_pos not in board.keys() and color == "w" and fig == "P":
-            return self.new_pos[0] + 1, self.new_pos[1]
-        if pos_diff in [(1, -1), (1, 1)] and self.new_pos not in board.keys() and color == "b" and fig == "P":
-            return self.new_pos[0] - 1, self.new_pos[1]
-        return None, None
-
-    # Wykonanie ruchu
-
-    def make_move(self):
-        if self.old_pos in self.previous_board.keys():
-            # print("RUCH",self.old_pos,self.new_pos)
-            # self.previous_board = Gameplay.get_pieces()
-            new_board = self.previous_board
-            col, row = self.check_en_passant(new_board)
-            if col is not None:
-                new_board.pop((col, row))
-            self.check_castling(new_board)
-            # print(self.previous_board)
-            fig_val = self.previous_board[self.old_pos]
-            new_board.pop(self.old_pos)
-            new_board[self.new_pos] = fig_val
-            # Gameplay.moveLog.append((old_pos,new_pos))
-            # print(Gameplay.moveLog)
-            return new_board
