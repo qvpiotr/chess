@@ -54,13 +54,27 @@ class Gameplay:
                         pygame.draw.rect(self.board_screen, (255, 255, 0),
                                          (old_pos[1] * self.field_side, old_pos[0] * self.field_side, self.field_side,
                                           self.field_side))
-                        self.draw_pieces()
+                        # self.draw_pieces()
                         to_move = True
+
+                        for moves in valid_moves:
+                            if (moves[0] == old_pos and self.check_move_correctness(moves[0],moves[1])):
+                                if((moves[1][0] % 2 == 0 and moves[1][1] % 2 != 0) or (moves[1][0] % 2 != 0 and moves[1][1] % 2 == 0)):
+                                    pygame.draw.rect(self.board_screen, (255, 255, 102),
+                                                (moves[1][1] * self.field_side, moves[1][0] * self.field_side, self.field_side,
+                                                self.field_side))
+                                else:
+                                    pygame.draw.rect(self.board_screen, (255, 255, 204),
+                                                (moves[1][1] * self.field_side, moves[1][0] * self.field_side, self.field_side,
+                                                self.field_side))
+                        self.draw_pieces()                  
+
                 elif event.type == pygame.MOUSEBUTTONUP and to_move:
                     click_pos = pygame.mouse.get_pos()
                     new_pos = ((click_pos[1]) // self.field_side, click_pos[0] // self.field_side)
                     print(click_pos)
                     print("TO:", new_pos)
+                    
                     if (old_pos, new_pos) in valid_moves and self.check_move_correctness(old_pos, new_pos):
                         fig = self.pieces[old_pos][5]
                         move_diff = (new_pos[0]-old_pos[0], new_pos[1]-old_pos[1])
@@ -108,8 +122,22 @@ class Gameplay:
                             pygame.draw.rect(self.board_screen, (255, 255, 0),
                                              (old_pos[1] * self.field_side, old_pos[0] * self.field_side, self.field_side,
                                               self.field_side))
-                            self.draw_pieces()
                             to_move = True
+
+                            # highlighting
+                            for moves in valid_moves:
+                                if(moves[0] == old_pos and self.check_move_correctness(moves[0],moves[1])):
+                                    if((moves[1][0] % 2 != 0 and moves[1][1] % 2 != 0) or (moves[1][0] % 2 == 0 and moves[1][1] % 2 == 0)):
+                                        pygame.draw.rect(self.board_screen, (255, 255, 204),
+                                             (moves[1][1] * self.field_side, moves[1][0] * self.field_side, self.field_side,
+                                              self.field_side))
+                                    else:
+                                        pygame.draw.rect(self.board_screen, (255, 255, 102),
+                                             (moves[1][1] * self.field_side, moves[1][0] * self.field_side, self.field_side,
+                                              self.field_side))
+                                    self.draw_pieces()
+                            
+
                     elif event.type == pygame.MOUSEBUTTONUP and to_move:
                         click_pos = pygame.mouse.get_pos()
                         new_pos = ((click_pos[1]) // self.field_side, click_pos[0] // self.field_side)
