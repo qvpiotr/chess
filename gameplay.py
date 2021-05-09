@@ -1,4 +1,5 @@
 import sys
+import pygame_gui
 from MovesGenerator import *
 from AI import *
 from move import *
@@ -32,14 +33,126 @@ class Gameplay:
             (6, 4): "img/wP.png", (6, 5): "img/wP.png", (6, 6): "img/wP.png", (6, 7): "img/wP.png"
         }
 
-    # Główna funkcja realizująca grę dwóch osób
+    
+    #głowna funkcja
+    def main_game(self):
+        pygame.display.set_caption('Chess')
+        self.board_screen = pygame.display.set_mode((800, 480))
 
+        background = pygame.Surface((800, 480))
+        background.fill(pygame.Color('#1a1a19'))
+        self.board_screen.blit(background, (0, 0))
+
+        font = pygame.font.SysFont('Lucida Console', 20)
+        img = font.render('I play as:', True, '#cdcdcb')
+        self.board_screen.blit(img, (500, 110))
+
+        # font = pygame.font.SysFont('Lucida Console', 12)
+        # img = font.render('It will be info about your move here:', True, '#cdcdcb')
+        # window_surface.blit(img, (500, 200))
+
+        self.draw_chessboard()
+        self.draw_pieces()
+        
+
+        manager = pygame_gui.UIManager((800, 480))
+
+
+        button_layout_rect = pygame.Rect(0, 0, 280, 30)
+        button_layout_rect.topright = (-20, 20)
+
+        play_computer = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
+                                                    text='Play with computer',
+                                                    manager=manager,
+                                                    anchors={'left': 'right',
+                                                        'right': 'right',
+                                                        'top': 'top',
+                                                        'bottom': 'bottom'})
+
+        button_layout_rect = pygame.Rect(0, 0, 280, 30)
+        button_layout_rect.topright = (-20, 60)
+
+
+        play_1vs1 = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
+                                                    text='Play 1 vs 1',
+                                                    manager=manager,
+                                                    anchors={'left': 'right',
+                                                        'right': 'right',
+                                                        'top': 'top',
+                                                        'bottom': 'bottom'})
+
+        button3_layout_rect = pygame.Rect(0, 0, 140, 30)
+        button3_layout_rect.topright = (-20, 140)
+
+        white_button3 = pygame_gui.elements.UIButton(relative_rect=button3_layout_rect,
+                                                    text='White',
+                                                    manager=manager,
+                                                    anchors={'left': 'right',
+                                                        'right': 'right',
+                                                        'top': 'top',
+                                                        'bottom': 'bottom'})
+
+        button4_layout_rect = pygame.Rect(0, 0, 140, 30)
+        button4_layout_rect.topright = (-160, 140)
+
+
+        black_button4 = pygame_gui.elements.UIButton(relative_rect=button4_layout_rect,
+                                                    text='Black',
+                                                    manager=manager,
+                                                    anchors={'left': 'right',
+                                                            'right': 'right',
+                                                            'top': 'top',
+                                                            'bottom': 'bottom'})
+
+
+        clock = pygame.time.Clock()
+        is_running = True
+
+        while is_running:
+
+            time_delta = clock.tick(60)/1000.0
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    is_running = False
+
+                if event.type == pygame.USEREVENT:
+                    if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                        if event.ui_element == white_button3:
+                            self.active_color = "w"
+                            self.non_active_color = "b"
+
+                if event.type == pygame.USEREVENT:
+                    if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                        if event.ui_element == black_button4:
+                            self.active_color = "b"
+                            self.non_active_color = "w"
+
+                if event.type == pygame.USEREVENT:
+                    if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                        if event.ui_element == play_1vs1:
+                            self.two_players_game()
+
+                if event.type == pygame.USEREVENT:
+                    if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                        if event.ui_element == play_computer:
+                            self.game_with_ai(self.active_color)            
+
+                manager.process_events(event)
+
+            manager.update(time_delta)
+            manager.draw_ui(self.board_screen)
+
+            pygame.display.update()
+
+    # Główna funkcja realizująca grę dwóch osób
     def two_players_game(self):
         old_pos = None
         to_move = False
-        self.board_screen.fill((0, 0, 0))
-        self.draw_chessboard()
-        self.draw_pieces()
+        # self.board_screen.fill((0, 0, 0))
+        # self.draw_chessboard()
+        # self.draw_pieces()
+        pygame.display.update()
+
         valid_moves = self.move_generator.generate_valid_moves()
         while 1:
             for event in pygame.event.get():
@@ -104,9 +217,11 @@ class Gameplay:
     def game_with_ai(self, player_color):
         old_pos = None
         to_move = False
-        self.board_screen.fill((0, 0, 0))
-        self.draw_chessboard()
-        self.draw_pieces()
+        # self.board_screen.fill((0, 0, 0))
+        # self.draw_chessboard()
+        # self.draw_pieces()
+        pygame.display.update()
+
         valid_moves = self.move_generator.generate_valid_moves()
         while 1:
             if self.active_color == player_color:
