@@ -32,6 +32,7 @@ class Gameplay:
             (6, 0): "img/wP.png", (6, 1): "img/wP.png", (6, 2): "img/wP.png", (6, 3): "img/wP.png",
             (6, 4): "img/wP.png", (6, 5): "img/wP.png", (6, 6): "img/wP.png", (6, 7): "img/wP.png"
         }
+        self.history = [self.pieces]
 
     
     #głowna funkcja
@@ -108,6 +109,8 @@ class Gameplay:
         clock = pygame.time.Clock()
         is_running = True
 
+        player_color = "w"
+
         while is_running:
 
             time_delta = clock.tick(60)/1000.0
@@ -118,14 +121,16 @@ class Gameplay:
                 if event.type == pygame.USEREVENT:
                     if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                         if event.ui_element == white_button3:
-                            self.active_color = "w"
-                            self.non_active_color = "b"
+                            # self.active_color = "w"
+                            # self.non_active_color = "b"
+                            player_color = "w"
 
                 if event.type == pygame.USEREVENT:
                     if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                         if event.ui_element == black_button4:
-                            self.active_color = "b"
-                            self.non_active_color = "w"
+                            # self.active_color = "b"
+                            # self.non_active_color = "w"
+                            player_color = "b"
 
                 if event.type == pygame.USEREVENT:
                     if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
@@ -135,7 +140,7 @@ class Gameplay:
                 if event.type == pygame.USEREVENT:
                     if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                         if event.ui_element == play_computer:
-                            self.game_with_ai(self.active_color)            
+                            self.game_with_ai(player_color)
 
                 manager.process_events(event)
 
@@ -146,6 +151,20 @@ class Gameplay:
 
     # Główna funkcja realizująca grę dwóch osób
     def two_players_game(self):
+        clock = pygame.time.Clock()
+        manager = pygame_gui.UIManager((800, 480))
+
+        button_layout_rect = pygame.Rect(0, 0, 280, 30)
+        button_layout_rect.topright = (-20, 180)
+
+        undo_move = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
+                                                 text='Undo move',
+                                                 manager=manager,
+                                                 anchors={'left': 'right',
+                                                          'right': 'right',
+                                                          'top': 'top',
+                                                          'bottom': 'bottom'})
+
         old_pos = None
         to_move = False
         # self.board_screen.fill((0, 0, 0))
@@ -155,6 +174,7 @@ class Gameplay:
 
         valid_moves = self.move_generator.generate_valid_moves()
         while 1:
+            time_delta = clock.tick(60) / 1000.0
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
@@ -199,6 +219,7 @@ class Gameplay:
                                 break
                         move = Move(old_pos, new_pos, self.pieces)
                         self.pieces = move.make_move()
+                        self.history.append(self.pieces)
                         self.update_castling_info(old_pos, new_pos)
                         self.moveLog.append((old_pos, new_pos))
                         self.active_color, self.non_active_color = self.non_active_color, self.active_color
@@ -212,9 +233,34 @@ class Gameplay:
                             print("STALEMATE")
                     self.draw_chessboard()
                     self.draw_pieces()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_b and len(self.history) > 1:
+                        self.undo_move()
+                elif event.type == pygame.USEREVENT:
+                    if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                        if event.ui_element == undo_move and len(self.history) > 1:
+                            self.undo_move()
+                manager.process_events(event)
+            manager.update(time_delta)
+            manager.draw_ui(self.board_screen)
             pygame.display.flip()
 
     def game_with_ai(self, player_color):
+
+        clock = pygame.time.Clock()
+        manager = pygame_gui.UIManager((800, 480))
+
+        button_layout_rect = pygame.Rect(0, 0, 280, 30)
+        button_layout_rect.topright = (-20, 180)
+
+        undo_move = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
+                                                 text='Undo move',
+                                                 manager=manager,
+                                                 anchors={'left': 'right',
+                                                          'right': 'right',
+                                                          'top': 'top',
+                                                          'bottom': 'bottom'})
+
         old_pos = None
         to_move = False
         # self.board_screen.fill((0, 0, 0))
@@ -224,6 +270,7 @@ class Gameplay:
 
         valid_moves = self.move_generator.generate_valid_moves()
         while 1:
+            time_delta = clock.tick(60) / 1000.0
             if self.active_color == player_color:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -269,6 +316,7 @@ class Gameplay:
                                     break
                             move = Move(old_pos, new_pos, self.pieces)
                             self.pieces = move.make_move()
+                            self.history.append(self.pieces)
                             self.update_castling_info(old_pos, new_pos)
                             self.moveLog.append((old_pos, new_pos))
                             self.active_color, self.non_active_color = self.non_active_color, self.active_color
@@ -284,6 +332,21 @@ class Gameplay:
                                 break
                         self.draw_chessboard()
                         self.draw_pieces()
+
+                    elif event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_b and len(self.history) > 2:
+                            self.undo_move()
+                            self.undo_move()
+
+                    elif event.type == pygame.USEREVENT:
+                        if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                            if event.ui_element == undo_move and len(self.history) > 2:
+                                self.undo_move()
+                                self.undo_move()
+                    manager.process_events(event)
+                    manager.update(time_delta)
+                    manager.draw_ui(self.board_screen)
+                    pygame.display.flip()
             else:
                 depth = self.depth+2
                 bot_move = None
@@ -307,6 +370,7 @@ class Gameplay:
                     move = Move(bot_move[0], bot_move[1], self.pieces)
                     move.set_non_player_move()
                     self.pieces = move.make_move()
+                    self.history.append(self.pieces)
                     self.update_castling_info(bot_move[0], bot_move[1])
                     self.moveLog.append((bot_move[0], bot_move[1]))
                     self.active_color, self.non_active_color = self.non_active_color, self.active_color
@@ -333,6 +397,14 @@ class Gameplay:
                 if event.type == pygame.QUIT:
                     sys.exit()
             pygame.display.flip()
+
+    def undo_move(self):
+        print("UNDO MOVE")
+        self.history.pop(-1)
+        self.pieces = self.history[-1]
+        self.active_color, self.non_active_color = self.non_active_color, self.active_color
+        self.draw_chessboard()
+        self.draw_pieces()
 
     def set_depth(self, depth):
         self.depth = depth

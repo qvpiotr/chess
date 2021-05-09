@@ -1,4 +1,3 @@
-from eval_tables import *
 from move import *
 from random import randint
 from random import shuffle
@@ -115,12 +114,9 @@ class AI:
             else:
                 return STALEMATE
         score = 0
-        eval_tables = {"wK": wK, "bK": bK, "wQ": wQ, "bQ": bQ, "wB": wB, "bB": bB, "wR": wR, "bR": bR,
-                       "wN": wN, "bN": bN, "wP": wP, "bP": bP}
         fig_val = {"wK": 0, "bK": 0, "wQ": 10, "bQ": -10, "wB": 3, "bB": -3, "wR": 5, "bR": -5,
                    "wN": 3, "bN": -3, "wP": 1, "bP": -1}
         for pos, img in self.gameplay.pieces.items():
             piece_type = img[4:6]
-            # score = score + fig_val[piece_type] * eval_tables[piece_type][pos[0]][pos[1]] # to fix
             score = score +fig_val[piece_type]
         return score
