@@ -1,0 +1,339 @@
+{
+    "bB":
+    {   
+        "colours":
+         {
+             "normal_bg": "#1a1a19",
+             "hovered_bg": "#1a1a19",
+             "disabled_bg": "#1a1a19",
+             "selected_bg": "#1a1a19",
+             "active_bg": "#1a1a19",
+             "normal_text": "#1a1a19",
+             "hovered_text": "#1a1a19",
+             "selected_text": "#1a1a19",
+             "disabled_text": "#1a1a19",
+             "active_text": "#1a1a19",
+             "normal_border": "#1a1a19",
+             "hovered_border": "#1a1a19",
+             "disabled_border": "#1a1a19",
+             "selected_border": "#1a1a19",
+             "active_border": "#1a1a19"
+         },
+        "images":
+        {
+             "normal_image": {
+                 "path": "resized_img/bB.png"
+             }
+        }
+        
+    },
+
+    "bK":
+    {   
+        "colours":
+         {
+             "normal_bg": "#1a1a19",
+             "hovered_bg": "#1a1a19",
+             "disabled_bg": "#1a1a19",
+             "selected_bg": "#1a1a19",
+             "active_bg": "#1a1a19",
+             "normal_text": "#1a1a19",
+             "hovered_text": "#1a1a19",
+             "selected_text": "#1a1a19",
+             "disabled_text": "#1a1a19",
+             "active_text": "#1a1a19",
+             "normal_border": "#1a1a19",
+             "hovered_border": "#1a1a19",
+             "disabled_border": "#1a1a19",
+             "selected_border": "#1a1a19",
+             "active_border": "#1a1a19"
+         },
+
+        "images":
+        {
+             "normal_image": {
+                 "path": "resized_img/bK.png"
+             }
+        }
+    },
+
+    "bN":
+    {
+        "colours":
+         {
+             "normal_bg": "#1a1a19",
+             "hovered_bg": "#1a1a19",
+             "disabled_bg": "#1a1a19",
+             "selected_bg": "#1a1a19",
+             "active_bg": "#1a1a19",
+             "normal_text": "#1a1a19",
+             "hovered_text": "#1a1a19",
+             "selected_text": "#1a1a19",
+             "disabled_text": "#1a1a19",
+             "active_text": "#1a1a19",
+             "normal_border": "#1a1a19",
+             "hovered_border": "#1a1a19",
+             "disabled_border": "#1a1a19",
+             "selected_border": "#1a1a19",
+             "active_border": "#1a1a19"
+         },
+        "images":
+        {
+             "normal_image": {
+                 "path": "resized_img/bN.png"
+             }
+        }
+    },
+
+    "bP":
+    {
+        "colours":
+         {
+             "normal_bg": "#1a1a19",
+             "hovered_bg": "#1a1a19",
+             "disabled_bg": "#1a1a19",
+             "selected_bg": "#1a1a19",
+             "active_bg": "#1a1a19",
+             "normal_text": "#1a1a19",
+             "hovered_text": "#1a1a19",
+             "selected_text": "#1a1a19",
+             "disabled_text": "#1a1a19",
+             "active_text": "#1a1a19",
+             "normal_border": "#1a1a19",
+             "hovered_border": "#1a1a19",
+             "disabled_border": "#1a1a19",
+             "selected_border": "#1a1a19",
+             "active_border": "#1a1a19"
+         },
+        "images":
+        {
+             "normal_image": {
+                 "path": "resized_img/bP.png"
+             }
+        }
+    },
+
+    "bQ":
+    {
+        "colours":
+         {
+             "normal_bg": "#1a1a19",
+             "hovered_bg": "#1a1a19",
+             "disabled_bg": "#1a1a19",
+             "selected_bg": "#1a1a19",
+             "active_bg": "#1a1a19",
+             "normal_text": "#1a1a19",
+             "hovered_text": "#1a1a19",
+             "selected_text": "#1a1a19",
+             "disabled_text": "#1a1a19",
+             "active_text": "#1a1a19",
+             "normal_border": "#1a1a19",
+             "hovered_border": "#1a1a19",
+             "disabled_border": "#1a1a19",
+             "selected_border": "#1a1a19",
+             "active_border": "#1a1a19"
+         },
+        "images":
+        {
+             "normal_image": {
+                 "path": "resized_img/bQ.png"
+             }
+        }
+    },
+
+    "bR":
+    {
+        "colours":
+         {
+             "normal_bg": "#1a1a19",
+             "hovered_bg": "#1a1a19",
+             "disabled_bg": "#1a1a19",
+             "selected_bg": "#1a1a19",
+             "active_bg": "#1a1a19",
+             "normal_text": "#1a1a19",
+             "hovered_text": "#1a1a19",
+             "selected_text": "#1a1a19",
+             "disabled_text": "#1a1a19",
+             "active_text": "#1a1a19",
+             "normal_border": "#1a1a19",
+             "hovered_border": "#1a1a19",
+             "disabled_border": "#1a1a19",
+             "selected_border": "#1a1a19",
+             "active_border": "#1a1a19"
+         },
+        "images":
+        {
+             "normal_image": {
+                 "path": "resized_img/bR.png"
+             }
+        }
+    },
+
+    "wB":
+    {
+        "colours":
+         {
+             "normal_bg": "#1a1a19",
+             "hovered_bg": "#1a1a19",
+             "disabled_bg": "#1a1a19",
+             "selected_bg": "#1a1a19",
+             "active_bg": "#1a1a19",
+             "normal_text": "#1a1a19",
+             "hovered_text": "#1a1a19",
+             "selected_text": "#1a1a19",
+             "disabled_text": "#1a1a19",
+             "active_text": "#1a1a19",
+             "normal_border": "#1a1a19",
+             "hovered_border": "#1a1a19",
+             "disabled_border": "#1a1a19",
+             "selected_border": "#1a1a19",
+             "active_border": "#1a1a19"
+         },
+        "images":
+        {
+             "normal_image": {
+                 "path": "resized_img/wB.png"
+             }
+        }
+    },
+
+    "wK":
+    {
+        "colours":
+         {
+             "normal_bg": "#1a1a19",
+             "hovered_bg": "#1a1a19",
+             "disabled_bg": "#1a1a19",
+             "selected_bg": "#1a1a19",
+             "active_bg": "#1a1a19",
+             "normal_text": "#1a1a19",
+             "hovered_text": "#1a1a19",
+             "selected_text": "#1a1a19",
+             "disabled_text": "#1a1a19",
+             "active_text": "#1a1a19",
+             "normal_border": "#1a1a19",
+             "hovered_border": "#1a1a19",
+             "disabled_border": "#1a1a19",
+             "selected_border": "#1a1a19",
+             "active_border": "#1a1a19"
+         },
+        "images":
+        {
+             "normal_image": {
+                 "path": "resized_img/wK.png"
+             }
+        }
+    },
+
+    "wN":
+    {
+        "colours":
+         {
+             "normal_bg": "#1a1a19",
+             "hovered_bg": "#1a1a19",
+             "disabled_bg": "#1a1a19",
+             "selected_bg": "#1a1a19",
+             "active_bg": "#1a1a19",
+             "normal_text": "#1a1a19",
+             "hovered_text": "#1a1a19",
+             "selected_text": "#1a1a19",
+             "disabled_text": "#1a1a19",
+             "active_text": "#1a1a19",
+             "normal_border": "#1a1a19",
+             "hovered_border": "#1a1a19",
+             "disabled_border": "#1a1a19",
+             "selected_border": "#1a1a19",
+             "active_border": "#1a1a19"
+         },
+        "images":
+        {
+             "normal_image": {
+                 "path": "resized_img/wN.png"
+             }
+        }
+    },
+
+    "wP":
+    {
+        "colours":
+         {
+             "normal_bg": "#1a1a19",
+             "hovered_bg": "#1a1a19",
+             "disabled_bg": "#1a1a19",
+             "selected_bg": "#1a1a19",
+             "active_bg": "#1a1a19",
+             "normal_text": "#1a1a19",
+             "hovered_text": "#1a1a19",
+             "selected_text": "#1a1a19",
+             "disabled_text": "#1a1a19",
+             "active_text": "#1a1a19",
+             "normal_border": "#1a1a19",
+             "hovered_border": "#1a1a19",
+             "disabled_border": "#1a1a19",
+             "selected_border": "#1a1a19",
+             "active_border": "#1a1a19"
+         },
+        "images":
+        {
+             "normal_image": {
+                 "path": "resized_img/wP.png"
+             }
+        }
+    },
+
+    "wQ":
+    {
+        "colours":
+         {
+             "normal_bg": "#1a1a19",
+             "hovered_bg": "#1a1a19",
+             "disabled_bg": "#1a1a19",
+             "selected_bg": "#1a1a19",
+             "active_bg": "#1a1a19",
+             "normal_text": "#1a1a19",
+             "hovered_text": "#1a1a19",
+             "selected_text": "#1a1a19",
+             "disabled_text": "#1a1a19",
+             "active_text": "#1a1a19",
+             "normal_border": "#1a1a19",
+             "hovered_border": "#1a1a19",
+             "disabled_border": "#1a1a19",
+             "selected_border": "#1a1a19",
+             "active_border": "#1a1a19"
+         },
+        "images":
+        {
+             "normal_image": {
+                 "path": "resized_img/wQ.png"
+             }
+        }
+    },
+
+    "wR":
+    {
+        "colours":
+         {
+             "normal_bg": "#1a1a19",
+             "hovered_bg": "#1a1a19",
+             "disabled_bg": "#1a1a19",
+             "selected_bg": "#1a1a19",
+             "active_bg": "#1a1a19",
+             "normal_text": "#1a1a19",
+             "hovered_text": "#1a1a19",
+             "selected_text": "#1a1a19",
+             "disabled_text": "#1a1a19",
+             "active_text": "#1a1a19",
+             "normal_border": "#1a1a19",
+             "hovered_border": "#1a1a19",
+             "disabled_border": "#1a1a19",
+             "selected_border": "#1a1a19",
+             "active_border": "#1a1a19"
+         },
+        "images":
+        {
+             "normal_image": {
+                 "path": "resized_img/wR.png"
+             }
+        }
+    }
+}

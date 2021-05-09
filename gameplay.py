@@ -56,7 +56,7 @@ class Gameplay:
         self.draw_pieces()
         
 
-        manager = pygame_gui.UIManager((800, 480))
+        manager = pygame_gui.UIManager((800, 480), 'button.json')
 
 
         button_layout_rect = pygame.Rect(0, 0, 280, 30)
@@ -168,7 +168,7 @@ class Gameplay:
     # Główna funkcja realizująca grę dwóch osób
     def two_players_game(self):
         clock = pygame.time.Clock()
-        manager = pygame_gui.UIManager((800, 480))
+        manager = pygame_gui.UIManager((800, 480),'button.json')
 
         button_layout_rect = pygame.Rect(0, 0, 280, 30)
         button_layout_rect.topright = (-20, 210)
@@ -264,7 +264,7 @@ class Gameplay:
     def game_with_ai(self, player_color):
 
         clock = pygame.time.Clock()
-        manager = pygame_gui.UIManager((800, 480))
+        manager = pygame_gui.UIManager((800, 480),'button.json')
 
         button_layout_rect = pygame.Rect(0, 0, 280, 30)
         button_layout_rect.topright = (-20, 210)
@@ -432,7 +432,7 @@ class Gameplay:
         self.draw_pieces()
 
         clock = pygame.time.Clock()
-        manager = pygame_gui.UIManager((800, 480))
+        manager = pygame_gui.UIManager((800, 480), 'button.json')
 
         button_layout_rect = pygame.Rect(0, 0, 280, 30)
         button_layout_rect.topright = (-20, 210)
@@ -445,27 +445,46 @@ class Gameplay:
                                                           'top': 'top',
                                                           'bottom': 'bottom'})
 
+        
+        black_pieces = {"bB", "bK", "bN", "bP", "bQ", "bR"} 
+        white_pieces = {"wB", "wK", "wN", "wP", "wQ", "wR"}
         button_layout_rect = pygame.Rect(0, 0, 30, 30)
         button_layout_rect.topright = (-20, 240)
+        i = 0
 
-        wK = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
-                                                 text='wK',
-                                                 manager=manager,
-                                                 anchors={'left': 'right',
-                                                          'right': 'right',
-                                                          'top': 'top',
-                                                          'bottom': 'bottom'})
 
-        button_layout_rect = pygame.Rect(0, 0, 30, 30)
-        button_layout_rect.topright = (-50, 240)
+        for piece in black_pieces:
+            # image = pygame.image.load('img/'+ piece +'.png')
+            # image = pygame.transform.scale(image, (40,35))
+            button_layout_rect.topright = (-20 + i, 250)
+            globals()['%s' % piece] = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
+                                                    text= "",
+                                                    manager=manager,
+                                                    object_id=f"{piece}",
+                                                    anchors={'left': 'right',
+                                                            'right': 'right',
+                                                            'top': 'top',
+                                                            'bottom': 'bottom'})
 
-        wQ = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
-                                          text='wQ',
-                                          manager=manager,
-                                          anchors={'left': 'right',
-                                                   'right': 'right',
-                                                   'top': 'top',
-                                                   'bottom': 'bottom'})
+            i-=50
+
+        i = 0    
+        for piece in white_pieces:
+            # image = pygame.image.load('img/'+ piece +'.png')
+            # image = pygame.transform.scale(image, (40,35))
+            button_layout_rect.topright = (-20 + i, 300)
+            globals()['%s' % piece] = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
+                                                    text = "",
+                                                    manager=manager,
+                                                    object_id=f"{piece}",
+                                                    anchors={'left': 'right',
+                                                            'right': 'right',
+                                                            'top': 'top',
+                                                            'bottom': 'bottom'})
+
+            i-=50
+                              
+
 
         running = 1
 
@@ -478,14 +497,64 @@ class Gameplay:
                     if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                         if event.ui_element == commit:
                             running = 0
+                        if event.ui_element == bB:
+                            pos = self.get_input()
+                            self.pieces[pos] = "img/bB.png"
+                            self.draw_chessboard()
+                            self.draw_pieces()
+                        if event.ui_element == bK:
+                            pos = self.get_input()
+                            self.pieces[pos] = "img/bK.png"
+                            self.draw_chessboard()
+                            self.draw_pieces()
+                        if event.ui_element == bN:
+                            pos = self.get_input()
+                            self.pieces[pos] = "img/bN.png"
+                            self.draw_chessboard()
+                            self.draw_pieces()
+                        if event.ui_element == bP:
+                            pos = self.get_input()
+                            self.pieces[pos] = "img/bP.png"
+                            self.draw_chessboard()
+                            self.draw_pieces()
+                        if event.ui_element == bQ:
+                            pos = self.get_input()
+                            self.pieces[pos] = "img/bQ.png"
+                            self.draw_chessboard()
+                            self.draw_pieces()
+                        if event.ui_element == bR:
+                            pos = self.get_input()
+                            self.pieces[pos] = "img/bR.png"
+                            self.draw_chessboard()
+                            self.draw_pieces()
+                        if event.ui_element == wB:
+                            pos = self.get_input()
+                            self.pieces[pos] = "img/wB.png"
+                            self.draw_chessboard()
+                            self.draw_pieces()
                         if event.ui_element == wK:
                             pos = self.get_input()
                             self.pieces[pos] = "img/wK.png"
                             self.draw_chessboard()
                             self.draw_pieces()
+                        if event.ui_element == wN:
+                            pos = self.get_input()
+                            self.pieces[pos] = "img/wN.png"
+                            self.draw_chessboard()
+                            self.draw_pieces()
+                        if event.ui_element == wP:
+                            pos = self.get_input()
+                            self.pieces[pos] = "img/wP.png"
+                            self.draw_chessboard()
+                            self.draw_pieces()
                         if event.ui_element == wQ:
                             pos = self.get_input()
                             self.pieces[pos] = "img/wQ.png"
+                            self.draw_chessboard()
+                            self.draw_pieces()
+                        if event.ui_element == wR:
+                            pos = self.get_input()
+                            self.pieces[pos] = "img/wR.png"
                             self.draw_chessboard()
                             self.draw_pieces()
                 manager.process_events(event)
