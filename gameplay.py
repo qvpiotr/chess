@@ -46,7 +46,7 @@ class Gameplay:
 
         font = pygame.font.SysFont('Lucida Console', 20)
         img = font.render('I play as:', True, '#cdcdcb')
-        self.board_screen.blit(img, (500, 110))
+        self.board_screen.blit(img, (500, 140))
 
         # font = pygame.font.SysFont('Lucida Console', 12)
         # img = font.render('It will be info about your move here:', True, '#cdcdcb')
@@ -82,8 +82,19 @@ class Gameplay:
                                                         'top': 'top',
                                                         'bottom': 'bottom'})
 
+        button_layout_rect = pygame.Rect(0, 0, 280, 30)
+        button_layout_rect.topright = (-20, 100)
+
+        from_position = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
+                                                 text='Set and find move',
+                                                 manager=manager,
+                                                 anchors={'left': 'right',
+                                                          'right': 'right',
+                                                          'top': 'top',
+                                                          'bottom': 'bottom'})
+
         button3_layout_rect = pygame.Rect(0, 0, 140, 30)
-        button3_layout_rect.topright = (-20, 140)
+        button3_layout_rect.topright = (-20, 170)
 
         white_button3 = pygame_gui.elements.UIButton(relative_rect=button3_layout_rect,
                                                     text='White',
@@ -94,7 +105,7 @@ class Gameplay:
                                                         'bottom': 'bottom'})
 
         button4_layout_rect = pygame.Rect(0, 0, 140, 30)
-        button4_layout_rect.topright = (-160, 140)
+        button4_layout_rect.topright = (-160, 170)
 
 
         black_button4 = pygame_gui.elements.UIButton(relative_rect=button4_layout_rect,
@@ -142,6 +153,11 @@ class Gameplay:
                         if event.ui_element == play_computer:
                             self.game_with_ai(player_color)
 
+                if event.type == pygame.USEREVENT:
+                    if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                        if event.ui_element == from_position:
+                            self.from_pos(player_color)
+
                 manager.process_events(event)
 
             manager.update(time_delta)
@@ -155,7 +171,7 @@ class Gameplay:
         manager = pygame_gui.UIManager((800, 480))
 
         button_layout_rect = pygame.Rect(0, 0, 280, 30)
-        button_layout_rect.topright = (-20, 180)
+        button_layout_rect.topright = (-20, 210)
 
         undo_move = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
                                                  text='Undo move',
@@ -251,7 +267,7 @@ class Gameplay:
         manager = pygame_gui.UIManager((800, 480))
 
         button_layout_rect = pygame.Rect(0, 0, 280, 30)
-        button_layout_rect.topright = (-20, 180)
+        button_layout_rect.topright = (-20, 210)
 
         undo_move = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
                                                  text='Undo move',
@@ -392,6 +408,96 @@ class Gameplay:
             print("tie")
         self.draw_chessboard()
         self.draw_pieces()
+        while 1:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+            pygame.display.flip()
+
+    def get_input(self):
+        while 1:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    click_pos = pygame.mouse.get_pos()
+                    pos = ((click_pos[1]) // self.field_side, click_pos[0] // self.field_side)
+                    if pos[0] > 7 or pos[1] > 7:
+                        continue
+                    return pos
+
+    def from_pos(self, player_color):
+        self.pieces = {}
+        self.draw_chessboard()
+        self.draw_pieces()
+
+        clock = pygame.time.Clock()
+        manager = pygame_gui.UIManager((800, 480))
+
+        button_layout_rect = pygame.Rect(0, 0, 280, 30)
+        button_layout_rect.topright = (-20, 210)
+
+        commit = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
+                                                 text='Commit',
+                                                 manager=manager,
+                                                 anchors={'left': 'right',
+                                                          'right': 'right',
+                                                          'top': 'top',
+                                                          'bottom': 'bottom'})
+
+        button_layout_rect = pygame.Rect(0, 0, 30, 30)
+        button_layout_rect.topright = (-20, 240)
+
+        wK = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
+                                                 text='wK',
+                                                 manager=manager,
+                                                 anchors={'left': 'right',
+                                                          'right': 'right',
+                                                          'top': 'top',
+                                                          'bottom': 'bottom'})
+
+        button_layout_rect = pygame.Rect(0, 0, 30, 30)
+        button_layout_rect.topright = (-50, 240)
+
+        wQ = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
+                                          text='wQ',
+                                          manager=manager,
+                                          anchors={'left': 'right',
+                                                   'right': 'right',
+                                                   'top': 'top',
+                                                   'bottom': 'bottom'})
+
+        running = 1
+
+        while running:
+            time_delta = clock.tick(60) / 1000.0
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+                if event.type == pygame.USEREVENT:
+                    if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                        if event.ui_element == commit:
+                            running = 0
+                        if event.ui_element == wK:
+                            pos = self.get_input()
+                            self.pieces[pos] = "img/wK.png"
+                            self.draw_chessboard()
+                            self.draw_pieces()
+                        if event.ui_element == wQ:
+                            pos = self.get_input()
+                            self.pieces[pos] = "img/wQ.png"
+                            self.draw_chessboard()
+                            self.draw_pieces()
+                manager.process_events(event)
+                manager.update(time_delta)
+                manager.draw_ui(self.board_screen)
+                pygame.display.flip()
+        '''
+        Pomyśleć czy da się jakoś efektywnie w pętli stworzyć te buttony + czy można ikony na przyciski
+        Pilnować aby dokładnie jeden król biały i czarny stał na planszy
+        Tu będzie obliczanie ruchu i ćwiczenie gracza
+        '''
+
         while 1:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
