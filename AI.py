@@ -1,5 +1,4 @@
 from move import *
-from random import randint
 from random import shuffle
 
 CHECKMATE = 10000
@@ -11,6 +10,7 @@ class AI:
     def __init__(self, gameplay, depth):
         self.gameplay = gameplay
         self.next_move = None
+        self.best_moves = []
         self.depth = depth
 
     def filter_moves(self, moves):
@@ -31,6 +31,9 @@ class AI:
 
     def get_next_move(self):
         return self.next_move
+
+    def get_best_moves(self):
+        return self.best_moves
 
     def print_board(self):
         board = []
@@ -59,11 +62,13 @@ class AI:
             self.gameplay.active_color, self.gameplay.non_active_color = self.gameplay.non_active_color, \
                                                                          self.gameplay.active_color
             score = -self.nega_max(self.gameplay.move_generator.generate_valid_moves(), depth - 1, -sign)
-            if score == max_val and randint(0, 2) % 2 == 1 and depth == self.depth:
-                self.next_move = move
+            if score == max_val and depth == self.depth:
+                self.best_moves.append(move)
             elif score > max_val:
                 max_val = score
                 if depth == self.depth:
+                    self.best_moves.clear()
+                    self.best_moves.append(move)
                     self.next_move = move
             back_move = Move(move[1], move[0], self.gameplay.pieces)
             back_move.set_non_player_move()
@@ -75,7 +80,7 @@ class AI:
 
     def nega_max_alpha_beta(self, valid_moves, depth, sign, alpha, beta):
         if self.gameplay.pieces is None:
-            print("Teraz piony są Nonem")
+            print("_")
         if depth == 0:
             return sign * self.board_value(valid_moves)
         correct_moves = self.filter_moves(valid_moves)
@@ -94,7 +99,7 @@ class AI:
             if score > max_val:
                 max_val = score
                 if depth == self.depth:
-                    print("Aktualna wartosc dla bota ", max_val, move)
+                    # print("Aktualna wartosc dla bota ", max_val, move)
                     self.next_move = move
             back_move = Move(move[1], move[0], self.gameplay.pieces)
             back_move.set_non_player_move()
