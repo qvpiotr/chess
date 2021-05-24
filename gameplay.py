@@ -6,6 +6,7 @@ from move import *
 from time import sleep
 from string import ascii_lowercase
 
+
 class Gameplay:
 
     def __init__(self):
@@ -391,7 +392,10 @@ class Gameplay:
                     self.pieces = move.make_move()
                     player_move_eval = AI(self, 1)
                     self.board_values_hist.append(player_move_eval.board_value(valid_moves))
-                    if self.board_values_hist[-2] - self.board_values_hist[-1] > 1:
+                    print(self.board_values_hist)
+                    if self.board_values_hist[-2] - self.board_values_hist[-1] > 1 and player_color == "w":
+                        self.put_message("Would suggest to undo move")
+                    elif self.board_values_hist[-2] - self.board_values_hist[-1] < -1 and player_color == "b":
                         self.put_message("Would suggest to undo move")
                     self.history.append(self.pieces)
                     self.update_castling_info(bot_move[0], bot_move[1])
