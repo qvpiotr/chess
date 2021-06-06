@@ -1,9 +1,9 @@
 import sys
 import pygame_gui
-from MovesGenerator import *
+from movesGenerator import *
 from AI import *
 from move import *
-from MessageSender import Sender
+from messageSender import Sender
 from string import ascii_lowercase
 
 
