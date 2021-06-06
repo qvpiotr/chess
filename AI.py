@@ -12,8 +12,10 @@ class AI:
         self.next_move = None
         self.best_moves = []
         self.depth = depth
+        self.screen = gameplay.get_screen()
 
     def filter_moves(self, moves):
+        """ Wybiera z wszystkich poprawnych ruchów pod względem zasad ruchy, które można wykonać z danej pozycji """
         correct_moves = []
         if ((0, 4), (0, 2)) in moves and not self.gameplay.check_castling_availability("long"): # roszady
             moves.remove(((0, 4), (0, 2)))
@@ -24,18 +26,20 @@ class AI:
         if ((7, 4), (7, 6)) in moves and not self.gameplay.check_castling_availability("short"):
             moves.remove(((7, 4), (7, 6)))
         for move in moves:
-            # print("Rozwazam ruch", move)
             if self.gameplay.check_move_correctness(move[0], move[1]):
                 correct_moves.append(move)
         return correct_moves
 
     def get_next_move(self):
+        """ Pobiera znaleziony ruch dla bota """
         return self.next_move
 
     def get_best_moves(self):
+        """ Pobiera listę równoważnych najlepszych ruchów """
         return self.best_moves
 
     def print_board(self):
+        """ Funkcja pomocnicza wypisująca w konsoli sytuację na planszy, pomocna przy weryfikacji działania bota """
         board = []
         for i in range(8):
             board.append([""] * 8)
@@ -48,6 +52,8 @@ class AI:
             print(board[i])
 
     def nega_max(self, valid_moves, depth, sign):
+        """ Zwraca najbardziej korzystną ewaluację planszy dla bota, dodatkowo zapisuje równoważnie najlepsze ruchy w
+            tablicy """
         if depth == 0:
             return sign * self.board_value(valid_moves)
         correct_moves = self.filter_moves(valid_moves)
@@ -56,7 +62,7 @@ class AI:
             cp_init_pos = {}
             for pos, img in self.gameplay.pieces.items():
                 cp_init_pos[pos] = img
-            next_move = Move(move[0], move[1], self.gameplay.pieces)
+            next_move = Move(move[0], move[1], self.gameplay.pieces, self.screen)
             next_move.set_non_player_move()
             self.gameplay.pieces = next_move.make_move()
             self.gameplay.active_color, self.gameplay.non_active_color = self.gameplay.non_active_color, \
@@ -70,7 +76,7 @@ class AI:
                     self.best_moves.clear()
                     self.best_moves.append(move)
                     self.next_move = move
-            back_move = Move(move[1], move[0], self.gameplay.pieces)
+            back_move = Move(move[1], move[0], self.gameplay.pieces, self.screen)
             back_move.set_non_player_move()
             self.gameplay.pieces = back_move.make_move()
             self.gameplay.active_color, self.gameplay.non_active_color = self.gameplay.non_active_color, \
@@ -79,6 +85,7 @@ class AI:
         return max_val
 
     def nega_max_alpha_beta(self, valid_moves, depth, sign, alpha, beta):
+        """ Znajduje jeden ruch dla bota, o największej wartości na planszy, zwraca wartość tego ruchu """
         if self.gameplay.pieces is None:
             print("_")
         if depth == 0:
@@ -90,7 +97,7 @@ class AI:
             cp_init_pos = {}
             for pos, img in self.gameplay.pieces.items():
                 cp_init_pos[pos] = img
-            next_move = Move(move[0], move[1], self.gameplay.pieces)
+            next_move = Move(move[0], move[1], self.gameplay.pieces, self.screen)
             next_move.set_non_player_move()
             self.gameplay.pieces = next_move.make_move()
             self.gameplay.active_color, self.gameplay.non_active_color = self.gameplay.non_active_color, \
@@ -101,7 +108,7 @@ class AI:
                 if depth == self.depth:
                     # print("Aktualna wartosc dla bota ", max_val, move)
                     self.next_move = move
-            back_move = Move(move[1], move[0], self.gameplay.pieces)
+            back_move = Move(move[1], move[0], self.gameplay.pieces, self.screen)
             back_move.set_non_player_move()
             self.gameplay.pieces = back_move.make_move()
             self.gameplay.active_color, self.gameplay.non_active_color = self.gameplay.non_active_color, \
@@ -113,6 +120,7 @@ class AI:
         return max_val
 
     def board_value(self, valid_moves):
+        """ Zwraca wartość obliczonej sytuacji na planszy """
         if not self.gameplay.find_any_possible_move(valid_moves):
             if self.gameplay.find_any_attacker():
                 return CHECKMATE

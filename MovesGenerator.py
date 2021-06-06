@@ -1,6 +1,6 @@
-# Sprawdza czy podana pozycja jest na szachownicy
-
 def in_borders(pos):
+    """ Sprawdza czy podana pozycja jest na szachownicy
+        Zwraca wartość prawda gdy jest, wartość fałsz gdy nie ma"""
     if pos[0] < 0 or pos[0] > 7 or pos[1] < 0 or pos[1] > 7:
         return False
     return True
@@ -11,10 +11,9 @@ class MovesGenerator:
     def __init__(self, gameplay):
         self.gameplay = gameplay
 
-    # Generuje wszystkie ruchy zgodne z zasadami, ale mogą być w danej sytuacji niepoprawne
-    # (poprawność sprawdza sobie gameplay)
-
     def generate_valid_moves(self):
+        """ Generuje i zwraca wszystkie ruchy zgodne z zasadami, niekonieczne poprawne w danej sytuacji
+            (poprawność sprawdza sobie gameplay)"""
         valid_moves = []
         self.generate_queen_moves(valid_moves)
         self.generate_king_moves(valid_moves)
@@ -26,9 +25,8 @@ class MovesGenerator:
         self.generate_pawn_moves(valid_moves)
         return valid_moves
 
-    # Generowanie roszad
-
     def generate_castling(self, valid_moves):
+        """ Dodaje do podanej listy wszystkie możliwe roszady do wykonania """
         if self.gameplay.active_color == "w":
             if self.gameplay.white_short_castling:
                 valid_moves.append(((7, 4), (7, 6)))
@@ -40,10 +38,8 @@ class MovesGenerator:
             if self.gameplay.black_long_castling:
                 valid_moves.append(((0, 4), (0, 2)))
 
-    # Generowanie bić piona
-
     def generate_pawn_attacks(self, valid_moves):
-        # print("Piony w pawn attacks", self.gameplay.pieces)
+        """ Generuje wszystkie ataki pionów i dodaje do listy """
         for pos, img in self.gameplay.pieces.items():
             color = img[4]
             fig = img[5]
@@ -62,18 +58,18 @@ class MovesGenerator:
                     continue
                 start_pos = last_black_move[0]
                 end_pos = last_black_move[1]
-                diff = (end_pos[0]-start_pos[0], end_pos[1]-start_pos[1])
+                diff = (end_pos[0] - start_pos[0], end_pos[1] - start_pos[1])
                 if diff == (2, 0) and figure == "P":
                     if (end_pos[0], end_pos[1] - 1) in self.gameplay.pieces.keys():
-                        fig_type = self.gameplay.pieces[end_pos[0], end_pos[1]-1][5]
-                        fig_color = self.gameplay.pieces[end_pos[0], end_pos[1]-1][4]
+                        fig_type = self.gameplay.pieces[end_pos[0], end_pos[1] - 1][5]
+                        fig_color = self.gameplay.pieces[end_pos[0], end_pos[1] - 1][4]
                         if fig_type == "P" and fig_color == self.gameplay.active_color:
-                            valid_moves.append(((end_pos[0], end_pos[1]-1), (end_pos[0]-1, end_pos[1])))
+                            valid_moves.append(((end_pos[0], end_pos[1] - 1), (end_pos[0] - 1, end_pos[1])))
                     if (end_pos[0], end_pos[1] + 1) in self.gameplay.pieces.keys():
-                        fig_type = self.gameplay.pieces[end_pos[0], end_pos[1]+1][5]
-                        fig_color = self.gameplay.pieces[end_pos[0], end_pos[1]+1][4]
+                        fig_type = self.gameplay.pieces[end_pos[0], end_pos[1] + 1][5]
+                        fig_color = self.gameplay.pieces[end_pos[0], end_pos[1] + 1][4]
                         if fig_type == "P" and fig_color == self.gameplay.active_color:
-                            valid_moves.append(((end_pos[0], end_pos[1]+1), (end_pos[0]-1, end_pos[1])))
+                            valid_moves.append(((end_pos[0], end_pos[1] + 1), (end_pos[0] - 1, end_pos[1])))
             else:
                 if (pos[0] + 1, pos[1] + 1) in self.gameplay.pieces.keys() \
                         and self.gameplay.pieces.get((pos[0] + 1, pos[1] + 1))[4] == "w":
@@ -100,9 +96,8 @@ class MovesGenerator:
                         if fig_type == "P" and fig_color == self.gameplay.active_color:
                             valid_moves.append(((end_pos[0], end_pos[1] + 1), (end_pos[0] + 1, end_pos[1])))
 
-    # Generowanie ruchów piona naprzód
-
     def generate_pawn_moves(self, valid_moves):
+        """ Generowanie ruchów piona naprzód i dodanie do listy """
         for pos, img in self.gameplay.pieces.items():
             color = img[4]
             fig = img[5]
@@ -111,19 +106,18 @@ class MovesGenerator:
             if color == "w":
                 if (pos[0] - 1, pos[1]) not in self.gameplay.pieces.keys():
                     valid_moves.append(((pos[0], pos[1]), (pos[0] - 1, pos[1])))
-                if pos[0] == 6 and (pos[0] - 2, pos[1]) not in self.gameplay.pieces.keys() and (pos[0] - 1, pos[1]) not \
+                if pos[0] == 6 and (pos[0] - 2, pos[1]) not in self.gameplay.pieces.keys() and (pos[0] - 1, pos[1]) not\
                         in self.gameplay.pieces.keys():
                     valid_moves.append(((pos[0], pos[1]), (pos[0] - 2, pos[1])))
             else:
                 if (pos[0] + 1, pos[1]) not in self.gameplay.pieces.keys():
                     valid_moves.append(((pos[0], pos[1]), (pos[0] + 1, pos[1])))
-                if pos[0] == 1 and (pos[0] + 2, pos[1]) not in self.gameplay.pieces.keys() and (pos[0] + 1, pos[1]) not \
+                if pos[0] == 1 and (pos[0] + 2, pos[1]) not in self.gameplay.pieces.keys() and (pos[0] + 1, pos[1]) not\
                         in self.gameplay.pieces.keys():
                     valid_moves.append(((pos[0], pos[1]), (pos[0] + 2, pos[1])))
 
-    # Generowanie ruchów konia
-
     def generate_knight_moves(self, valid_moves):
+        """ Generowanie wszystkich ruchów konia i dodanie do listy """
         possible_vecs = [(-2, 1), (-1, 2), (1, 2), (2, 1), (2, -1), (1, -2), (-1, -2), (-2, -1)]
         for pos, img in self.gameplay.pieces.items():
             color = img[4]
@@ -139,9 +133,8 @@ class MovesGenerator:
                     continue
                 valid_moves.append((pos, new_pos))
 
-    # Generowanie ruchów gońca
-
     def generate_bishop_moves(self, valid_moves):
+        """ Generowanie wszystkich ruchów gońca i dopisanie do listy """
         for pos, img in self.gameplay.pieces.items():
             color = img[4]
             fig = img[5]
@@ -151,7 +144,7 @@ class MovesGenerator:
                 for y in range(-1, 2, 2):
                     vector = (x, y)
                     jump = 1
-                    possible_pos = (jump*vector[0]+pos[0], jump*vector[1]+pos[1])
+                    possible_pos = (jump * vector[0] + pos[0], jump * vector[1] + pos[1])
                     while in_borders(possible_pos) and possible_pos not in self.gameplay.pieces.keys():
                         valid_moves.append((pos, possible_pos))
                         jump += 1
@@ -162,53 +155,50 @@ class MovesGenerator:
                         else:
                             valid_moves.append((pos, possible_pos))
 
-    # Generowanie ruchów wieży
-
     def generate_rock_moves(self, valid_moves):
+        """ Generowanie wszystkich ruchów wieży i dopisanie do listy """
         for pos, img in self.gameplay.pieces.items():
             color = img[4]
             fig = img[5]
             if fig != "R" or color != self.gameplay.active_color:
                 continue
             for x, y in [(0, 1), (1, 0), (-1, 0), (0, -1)]:
-                    vector = (x, y)
-                    jump = 1
-                    possible_pos = (jump*vector[0]+pos[0], jump*vector[1]+pos[1])
-                    while in_borders(possible_pos) and possible_pos not in self.gameplay.pieces.keys():
+                vector = (x, y)
+                jump = 1
+                possible_pos = (jump * vector[0] + pos[0], jump * vector[1] + pos[1])
+                while in_borders(possible_pos) and possible_pos not in self.gameplay.pieces.keys():
+                    valid_moves.append((pos, possible_pos))
+                    jump += 1
+                    possible_pos = (jump * vector[0] + pos[0], jump * vector[1] + pos[1])
+                if possible_pos in self.gameplay.pieces.keys():
+                    if self.gameplay.pieces.get(possible_pos)[4] == self.gameplay.active_color:
+                        pass
+                    else:
                         valid_moves.append((pos, possible_pos))
-                        jump += 1
-                        possible_pos = (jump * vector[0] + pos[0], jump * vector[1] + pos[1])
-                    if possible_pos in self.gameplay.pieces.keys():
-                        if self.gameplay.pieces.get(possible_pos)[4] == self.gameplay.active_color:
-                            pass
-                        else:
-                            valid_moves.append((pos, possible_pos))
-
-    # Generowanie ruchów Hetmana
 
     def generate_queen_moves(self, valid_moves):
+        """ Generowanie wszystkich ruchów hetmana i dopisanie do listy """
         for pos, img in self.gameplay.pieces.items():
             color = img[4]
             fig = img[5]
             if fig != "Q" or color != self.gameplay.active_color:
                 continue
             for x, y in [(0, 1), (1, 0), (-1, 0), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)]:
-                    vector = (x, y)
-                    jump = 1
-                    possible_pos = (jump*vector[0]+pos[0], jump*vector[1]+pos[1])
-                    while in_borders(possible_pos) and possible_pos not in self.gameplay.pieces.keys():
+                vector = (x, y)
+                jump = 1
+                possible_pos = (jump * vector[0] + pos[0], jump * vector[1] + pos[1])
+                while in_borders(possible_pos) and possible_pos not in self.gameplay.pieces.keys():
+                    valid_moves.append((pos, possible_pos))
+                    jump += 1
+                    possible_pos = (jump * vector[0] + pos[0], jump * vector[1] + pos[1])
+                if possible_pos in self.gameplay.pieces.keys():
+                    if self.gameplay.pieces.get(possible_pos)[4] == self.gameplay.active_color:
+                        pass
+                    else:
                         valid_moves.append((pos, possible_pos))
-                        jump += 1
-                        possible_pos = (jump * vector[0] + pos[0], jump * vector[1] + pos[1])
-                    if possible_pos in self.gameplay.pieces.keys():
-                        if self.gameplay.pieces.get(possible_pos)[4] == self.gameplay.active_color:
-                            pass
-                        else:
-                            valid_moves.append((pos, possible_pos))
-
-    # Generowanie ruchów króla
 
     def generate_king_moves(self, valid_moves):
+        """ Generowanie wszystkich ruchów króla i dopisanie do listy """
         for pos, img in self.gameplay.pieces.items():
             color = img[4]
             fig = img[5]

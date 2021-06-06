@@ -1,22 +1,23 @@
 import pygame
+from MessageSender import Sender
 
 class Move:
 
-    def __init__(self, old_pos, new_pos, previous_board):
+    def __init__(self, old_pos, new_pos, previous_board, board_screen):
         self.previous_board = previous_board
         self.old_pos = old_pos
         self.new_pos = new_pos
-        # self.Gameplay = Gameplay
         self.player_move = True
-
-    # Pilnuje, żeby promocja piona dobrze działała - gracz może wybrać figure
+        self.screen = board_screen
 
     def set_non_player_move(self):
+        """ Funkcja pomocnicza, która informuje o tym, że ruch jest:
+            - wykonywany przez bota
+            - testowy w celu sprawdzenia pewnej sytuacji po nim """
         self.player_move = False
 
-    # Jesli ruch jest roszadą to ta funkcja z automatu przestawi wieżę
-
     def check_castling(self, board):
+        """ Weryfikacja roszady - po przestawieniu króla automatycznie przestawi też odpowiednią wieżę """
         img_name = board[self.old_pos]
         color = img_name[4]
         fig = img_name[5]
@@ -36,9 +37,8 @@ class Move:
                 board[(0, 3)] = board[(0, 0)]
                 board.pop((0, 0))
 
-    # Daje informację czy wykonano bicie w przelocie, jeśli tak to w make_move odpowiedni pion zostanie zdjęty
-
     def check_en_passant(self, board):
+        """ Sprawdza czy wykonano bicie w przelocie """
         img_name = board[self.old_pos]
         color = img_name[4]
         fig = img_name[5]
@@ -49,9 +49,8 @@ class Move:
             return self.new_pos[0] - 1, self.new_pos[1]
         return None, None
 
-    # Promocja piona
-
     def promote_pawn(self, board):
+        """ Funkcja do obsługi promocji piona na ostatniej linii """
         color = board[self.new_pos][4]
         fig = board[self.new_pos][5]
         promotion = False
@@ -59,9 +58,10 @@ class Move:
             promotion = True
         if fig == "P" and color == "b" and self.new_pos[0] == 7:
             promotion = True
+        sender = Sender(self.screen)
         if promotion:
             if self.player_move:
-                print("Right mouse key - switch for the next choice, left mouse key to commit")
+                sender.put_message("Left to commit, right to switch")
                 figures = ["Q", "R", "B", "N"]
                 running = 1
                 type_counter = -1
@@ -70,20 +70,17 @@ class Move:
                         if event.type == pygame.MOUSEBUTTONDOWN:
                             if event.button == 3:
                                 type_counter = (type_counter + 1) % 4
-                                print("Actual choice: ", figures[type_counter])
+                                sender.put_message("Actual choice {0}".format(figures[type_counter]))
                             elif event.button == 1 and type_counter != -1:
-                                print("Commit")
                                 running = 0
                 new_fig = figures[type_counter]
                 board[self.new_pos] = "img/"+color+new_fig+".png"
             else:
                 board[self.new_pos] = "img/"+color+"Q.png"
 
-    # Wykonanie ruchu
-
     def make_move(self):
+        """ Funkcja obsługująca wykonanie jednego ruchu z old_pos do new_pos """
         if self.old_pos in self.previous_board.keys():
-            # print("RUCH",self.old_pos,self.new_pos)
             new_board = self.previous_board
             col, row = self.check_en_passant(new_board)
             if col is not None:
@@ -93,6 +90,4 @@ class Move:
             new_board.pop(self.old_pos)
             new_board[self.new_pos] = fig_val
             self.promote_pawn(new_board)
-            # Gameplay.moveLog.append((old_pos,new_pos))
-            # print(Gameplay.moveLog)
             return new_board
