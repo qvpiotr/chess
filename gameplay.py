@@ -1,10 +1,15 @@
+from aiGame import aiGame
+from twoPlayersGame import TwoPlayersGame
+from fromPosGame import FromPos
 import sys
-import pygame_gui
-from movesGenerator import *
-from AI import *
-from move import *
-from messageSender import Sender
 from string import ascii_lowercase
+
+import pygame_gui
+
+from AI import *
+from messageSender import Sender
+from move import *
+from movesGenerator import *
 
 
 class Gameplay:
@@ -50,10 +55,6 @@ class Gameplay:
         font = pygame.font.SysFont('Lucida Console', 20)
         img = font.render('I play as:', True, '#cdcdcb')
         self.board_screen.blit(img, (500, 140))
-
-        # font = pygame.font.SysFont('Lucida Console', 12)
-        # img = font.render('It will be info about your move here:', True, '#cdcdcb')
-        # window_surface.blit(img, (500, 200))
 
         self.draw_chessboard()
         self.draw_pieces()
@@ -139,17 +140,20 @@ class Gameplay:
                 if event.type == pygame.USEREVENT:
                     if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                         if event.ui_element == play_1vs1:
-                            self.two_players_game()
+                            game = TwoPlayersGame(self)
+                            game.two_players_game()
 
                 if event.type == pygame.USEREVENT:
                     if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                         if event.ui_element == play_computer:
-                            self.game_with_ai(player_color)
+                            game = aiGame(self)
+                            game.game_with_ai(player_color)
 
                 if event.type == pygame.USEREVENT:
                     if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
                         if event.ui_element == from_position:
-                            self.from_pos(player_color)
+                            game = FromPos(self)
+                            game.from_pos(player_color)
 
                 manager.process_events(event)
 
@@ -158,250 +162,7 @@ class Gameplay:
 
             pygame.display.update()
 
-    def two_players_game(self):
-        """ Obsługuje gre dla dwóch ludzi """
-        clock = pygame.time.Clock()
-        manager = pygame_gui.UIManager((800, 480), 'button.json')
 
-        button_layout_rect = pygame.Rect(0, 0, 280, 30)
-        button_layout_rect.topright = (-20, 210)
-
-        undo_move = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
-                                                 text='Undo move',
-                                                 manager=manager,
-                                                 anchors={'left': 'right',
-                                                          'right': 'right',
-                                                          'top': 'top',
-                                                          'bottom': 'bottom'})
-
-        old_pos = None
-        to_move = False
-        pygame.display.update()
-
-        valid_moves = self.move_generator.generate_valid_moves()
-        while 1:
-            time_delta = clock.tick(60) / 1000.0
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit()
-                elif event.type == pygame.MOUSEBUTTONUP and not to_move:
-                    click_pos = pygame.mouse.get_pos()
-                    old_pos = ((click_pos[1]) // self.field_side, click_pos[0] // self.field_side)
-                    if old_pos in self.pieces.keys() and self.pieces.get(old_pos)[4] == self.active_color:
-                        pygame.draw.rect(self.board_screen, (255, 255, 0),
-                                         (old_pos[1] * self.field_side, old_pos[0] * self.field_side, self.field_side,
-                                          self.field_side))
-                        to_move = True
-
-                        for moves in valid_moves:
-                            if moves[0] == old_pos and self.check_move_correctness(moves[0], moves[1]):
-                                if (moves[1][0] % 2 == 0 and moves[1][1] % 2 != 0) or (moves[1][0] % 2 != 0 and
-                                                                                       moves[1][1] % 2 == 0):
-                                    pygame.draw.rect(self.board_screen, (255, 255, 102),
-                                                     (moves[1][1] * self.field_side, moves[1][0] * self.field_side,
-                                                      self.field_side, self.field_side))
-                                else:
-                                    pygame.draw.rect(self.board_screen, (255, 255, 204),
-                                                     (moves[1][1] * self.field_side, moves[1][0] * self.field_side,
-                                                      self.field_side, self.field_side))
-                        self.draw_pieces()
-
-                elif event.type == pygame.MOUSEBUTTONUP and to_move:
-                    click_pos = pygame.mouse.get_pos()
-                    new_pos = ((click_pos[1]) // self.field_side, click_pos[0] // self.field_side)
-
-                    if (old_pos, new_pos) in valid_moves and self.check_move_correctness(old_pos, new_pos):
-                        fig = self.pieces[old_pos][5]
-                        move_diff = (new_pos[0] - old_pos[0], new_pos[1] - old_pos[1])
-                        if fig == "K" and move_diff == (0, 2):
-                            if not self.check_castling_availability("short"):
-                                break
-                        if fig == "K" and move_diff == (0, -2):
-                            if not self.check_castling_availability("long"):
-                                break
-                        move = Move(old_pos, new_pos, self.pieces, self.board_screen)
-                        self.sender.put_message("Move "+self.pos_to_string(old_pos)+"-"+self.pos_to_string(new_pos))
-                        self.pieces = move.make_move()
-                        self.history.append(self.pieces)
-                        self.update_castling_info(old_pos, new_pos)
-                        self.moveLog.append((old_pos, new_pos))
-                        self.active_color, self.non_active_color = self.non_active_color, self.active_color
-                    to_move = False
-                    valid_moves = self.move_generator.generate_valid_moves()
-                    if not self.find_any_possible_move(valid_moves):
-                        if self.find_any_attacker():
-                            text = "black" if self.active_color == "w" else "white"
-                            text += " won"
-                            self.sender.put_message(text)
-                        else:
-                            self.sender.put_message("tie")
-                    self.draw_chessboard()
-                    self.draw_pieces()
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_b and len(self.history) > 1:
-                        self.undo_move()
-                elif event.type == pygame.USEREVENT:
-                    if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
-                        if event.ui_element == undo_move and len(self.history) > 1:
-                            self.undo_move()
-                manager.process_events(event)
-            manager.update(time_delta)
-            manager.draw_ui(self.board_screen)
-            pygame.display.flip()
-
-    def game_with_ai(self, player_color):
-
-        """ Obsługa pełnej gry z botem """
-
-        clock = pygame.time.Clock()
-        manager = pygame_gui.UIManager((800, 480), 'button.json')
-
-        button_layout_rect = pygame.Rect(0, 0, 280, 30)
-        button_layout_rect.topright = (-20, 210)
-
-        undo_move = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
-                                                 text='Undo move',
-                                                 manager=manager,
-                                                 anchors={'left': 'right',
-                                                          'right': 'right',
-                                                          'top': 'top',
-                                                          'bottom': 'bottom'})
-
-        old_pos = None
-        to_move = False
-        pygame.display.update()
-
-        valid_moves = self.move_generator.generate_valid_moves()
-        while 1:
-            time_delta = clock.tick(60) / 1000.0
-            if self.active_color == player_color:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        sys.exit()
-                    elif event.type == pygame.MOUSEBUTTONUP and not to_move:
-                        click_pos = pygame.mouse.get_pos()
-                        old_pos = ((click_pos[1]) // self.field_side, click_pos[0] // self.field_side)
-                        if old_pos in self.pieces.keys() and self.pieces.get(old_pos)[4] == self.active_color:
-                            pygame.draw.rect(self.board_screen, (255, 255, 0),
-                                             (old_pos[1] * self.field_side, old_pos[0] * self.field_side,
-                                              self.field_side,
-                                              self.field_side))
-                            to_move = True
-
-                            for moves in valid_moves:
-                                if moves[0] == old_pos and self.check_move_correctness(moves[0], moves[1]):
-                                    if (moves[1][0] % 2 != 0 and moves[1][1] % 2 != 0) or (moves[1][0] % 2 == 0 and
-                                                                                           moves[1][1] % 2 == 0):
-                                        pygame.draw.rect(self.board_screen, (255, 255, 204),
-                                                         (moves[1][1] * self.field_side, moves[1][0] * self.field_side,
-                                                          self.field_side, self.field_side))
-                                    else:
-                                        pygame.draw.rect(self.board_screen, (255, 255, 102),
-                                                         (moves[1][1] * self.field_side, moves[1][0] * self.field_side,
-                                                          self.field_side, self.field_side))
-                                    self.draw_pieces()
-                    elif event.type == pygame.MOUSEBUTTONUP and to_move:
-                        click_pos = pygame.mouse.get_pos()
-                        new_pos = ((click_pos[1]) // self.field_side, click_pos[0] // self.field_side)
-                        if (old_pos, new_pos) in valid_moves and self.check_move_correctness(old_pos, new_pos):
-                            fig = self.pieces[old_pos][5]
-                            move_diff = (new_pos[0] - old_pos[0], new_pos[1] - old_pos[1])
-                            if fig == "K" and move_diff == (0, 2):
-                                if not self.check_castling_availability("short"):
-                                    break
-                            if fig == "K" and move_diff == (0, -2):
-                                if not self.check_castling_availability("long"):
-                                    break
-                            move = Move(old_pos, new_pos, self.pieces, self.board_screen)
-                            self.sender.put_message("Move "+self.pos_to_string(old_pos)+"-"+self.pos_to_string(new_pos))
-                            self.pieces = move.make_move()
-                            self.history.append(self.pieces)
-                            self.update_castling_info(old_pos, new_pos)
-                            self.moveLog.append((old_pos, new_pos))
-                            self.active_color, self.non_active_color = self.non_active_color, self.active_color
-                        to_move = False
-                        valid_moves = self.move_generator.generate_valid_moves()
-
-                        if not self.find_any_possible_move(valid_moves):
-                            if self.find_any_attacker():
-                                text = "black" if self.active_color == "w" else "white"
-                                text += " won"
-                                self.sender.put_message(text)
-                                break
-                            else:
-                                self.sender.put_message("tie")
-                                break
-                        self.draw_chessboard()
-                        self.draw_pieces()
-
-                    elif event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_b and len(self.history) > 2:
-                            self.undo_move()
-                            self.undo_move()
-
-                    elif event.type == pygame.USEREVENT:
-                        if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
-                            if event.ui_element == undo_move and len(self.history) > 2:
-                                self.undo_move()
-                                self.undo_move()
-                    manager.process_events(event)
-                    manager.update(time_delta)
-                    manager.draw_ui(self.board_screen)
-                    pygame.display.flip()
-            else:
-                depth = self.depth + 2
-                bot_move = None
-                while bot_move is None and depth > 0:
-                    depth -= 2
-                    ai = AI(self, depth)
-                    ai.nega_max_alpha_beta(valid_moves, depth, -1 if player_color == "w" else 1, -10000, 10000)
-                    bot_move = ai.get_next_move()
-                if bot_move is None:
-                    break
-                if self.check_move_correctness(bot_move[0], bot_move[1]):
-                    fig = self.pieces[bot_move[0]][5]
-                    move_diff = (bot_move[1][0] - bot_move[0][0], bot_move[1][1] - bot_move[0][1])
-                    if fig == "K" and move_diff == (0, 2):
-                        if not self.check_castling_availability("short"):
-                            continue
-                    if fig == "K" and move_diff == (0, -2):
-                        if not self.check_castling_availability("long"):
-                            continue
-                    move = Move(bot_move[0], bot_move[1], self.pieces, self.board_screen)
-                    self.sender.put_message("Move "+self.pos_to_string(bot_move[0])+"-"+self.pos_to_string(bot_move[1]))
-                    move.set_non_player_move()
-                    self.pieces = move.make_move()
-                    player_move_eval = AI(self, 1)
-                    self.board_values_hist.append(player_move_eval.board_value(valid_moves))
-                    if self.board_values_hist[-2] - self.board_values_hist[-1] > 1 and player_color == "w":
-                        self.sender.put_message("Would suggest to undo move")
-                    elif self.board_values_hist[-2] - self.board_values_hist[-1] < -1 and player_color == "b":
-                        self.sender.put_message("Would suggest to undo move")
-                    self.history.append(self.pieces)
-                    self.update_castling_info(bot_move[0], bot_move[1])
-                    self.moveLog.append((bot_move[0], bot_move[1]))
-                    self.active_color, self.non_active_color = self.non_active_color, self.active_color
-                valid_moves = self.move_generator.generate_valid_moves()
-                if not self.find_any_possible_move(valid_moves):
-                    if self.find_any_attacker():
-                        text = "black" if self.active_color == "w" else "white"
-                        text += " won"
-                        self.sender.put_message(text)
-                        break
-                    else:
-                        self.sender.put_message("tie")
-                        break
-                self.draw_chessboard()
-                self.draw_pieces()
-            pygame.display.flip()
-
-        self.draw_chessboard()
-        self.draw_pieces()
-        while 1:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit()
-            pygame.display.flip()
 
     def get_input(self):
         """ Zwraca oznaczenia pola klikniętego przez gracza lub None w przypadku kliknięcia poza planszą """
@@ -430,274 +191,6 @@ class Gameplay:
         if pos[0] == 0 or pos[0] == 7:
             return False
         return True
-
-    def from_pos(self, player_color):
-        """ Tryb gry, gdzie gracz ustawia własną sytuację i ma wykonać najlepszy ruch """
-        global time_delta
-        self.pieces = {}
-        self.draw_chessboard()
-        self.draw_pieces()
-
-        clock = pygame.time.Clock()
-        manager = pygame_gui.UIManager((800, 480), 'button.json')
-
-        button_layout_rect = pygame.Rect(0, 0, 280, 30)
-        button_layout_rect.topright = (-20, 210)
-
-        commit = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
-                                              text='Commit',
-                                              manager=manager,
-                                              anchors={'left': 'right',
-                                                       'right': 'right',
-                                                       'top': 'top',
-                                                       'bottom': 'bottom'})
-
-        black_pieces = {"bB", "bK", "bN", "bP", "bQ", "bR"}
-        white_pieces = {"wB", "wK", "wN", "wP", "wQ", "wR"}
-        button_layout_rect = pygame.Rect(0, 0, 30, 30)
-        button_layout_rect.topright = (-20, 240)
-        i = 0
-
-        for piece in black_pieces:
-            # image = pygame.image.load('img/'+ piece +'.png')
-            # image = pygame.transform.scale(image, (40,35))
-            button_layout_rect.topright = (-20 + i, 250)
-            globals()['%s' % piece] = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
-                                                                   text="",
-                                                                   manager=manager,
-                                                                   object_id=f"{piece}",
-                                                                   anchors={'left': 'right',
-                                                                            'right': 'right',
-                                                                            'top': 'top',
-                                                                            'bottom': 'bottom'})
-
-            i -= 50
-
-        i = 0
-        for piece in white_pieces:
-            # image = pygame.image.load('img/'+ piece +'.png')
-            # image = pygame.transform.scale(image, (40,35))
-            button_layout_rect.topright = (-20 + i, 300)
-            globals()['%s' % piece] = pygame_gui.elements.UIButton(relative_rect=button_layout_rect,
-                                                                   text="",
-                                                                   manager=manager,
-                                                                   object_id=f"{piece}",
-                                                                   anchors={'left': 'right',
-                                                                            'right': 'right',
-                                                                            'top': 'top',
-                                                                            'bottom': 'bottom'})
-
-            i -= 50
-
-        running = 1
-        wK_control = 1
-        bK_control = 1
-
-        while running or wK_control or bK_control:
-            time_delta = clock.tick(60) / 1000.0
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit()
-                if event.type == pygame.USEREVENT:
-                    if event.user_type == pygame_gui.UI_BUTTON_PRESSED:
-                        if event.ui_element == commit:
-                            if bK_control or wK_control:
-                                self.sender.put_message("Both kings must be on board")
-                            else:
-                                running = 0
-                        if event.ui_element == bB:
-                            pos = self.get_input()
-                            if pos is None:
-                                continue
-                            if self.count_figures("bB", 10):
-                                self.pieces[pos] = "img/bB.png"
-                            self.draw_chessboard()
-                            self.draw_pieces()
-                        if event.ui_element == bK and bK_control:
-                            bK_control = 0
-                            pos = self.get_input()
-                            if pos is None:
-                                continue
-                            self.pieces[pos] = "img/bK.png"
-                            self.draw_chessboard()
-                            self.draw_pieces()
-                        if event.ui_element == bN:
-                            pos = self.get_input()
-                            if pos is None:
-                                continue
-                            if self.count_figures("bN", 10):
-                                self.pieces[pos] = "img/bN.png"
-                            self.draw_chessboard()
-                            self.draw_pieces()
-                        if event.ui_element == bP:
-                            pos = self.get_input()
-                            if pos is None:
-                                continue
-                            if self.set_pawn_check(pos):
-                                self.pieces[pos] = "img/bP.png"
-                            self.draw_chessboard()
-                            self.draw_pieces()
-                        if event.ui_element == bQ:
-                            pos = self.get_input()
-                            if pos is None:
-                                continue
-                            if self.count_figures("bQ", 9):
-                                self.pieces[pos] = "img/bQ.png"
-                            self.draw_chessboard()
-                            self.draw_pieces()
-                        if event.ui_element == bR:
-                            pos = self.get_input()
-                            if pos is None:
-                                continue
-                            if self.count_figures("bR", 10):
-                                self.pieces[pos] = "img/bR.png"
-                            self.draw_chessboard()
-                            self.draw_pieces()
-                        if event.ui_element == wB:
-                            pos = self.get_input()
-                            if pos is None:
-                                continue
-                            if self.count_figures("wB", 10):
-                                self.pieces[pos] = "img/wB.png"
-                            self.draw_chessboard()
-                            self.draw_pieces()
-                        if event.ui_element == wK and wK_control:
-                            wK_control = 0
-                            pos = self.get_input()
-                            if pos is None:
-                                continue
-                            self.pieces[pos] = "img/wK.png"
-                            self.draw_chessboard()
-                            self.draw_pieces()
-                        if event.ui_element == wN:
-                            pos = self.get_input()
-                            if pos is None:
-                                continue
-                            if self.count_figures("wN", 10):
-                                self.pieces[pos] = "img/wN.png"
-                            self.draw_chessboard()
-                            self.draw_pieces()
-                        if event.ui_element == wP:
-                            pos = self.get_input()
-                            if pos is None:
-                                continue
-                            if self.set_pawn_check(pos):
-                                self.pieces[pos] = "img/wP.png"
-                            self.draw_chessboard()
-                            self.draw_pieces()
-                        if event.ui_element == wQ:
-                            pos = self.get_input()
-                            if pos is None:
-                                continue
-                            if self.count_figures("wQ", 9):
-                                self.pieces[pos] = "img/wQ.png"
-                            self.draw_chessboard()
-                            self.draw_pieces()
-                        if event.ui_element == wR:
-                            pos = self.get_input()
-                            if pos is None:
-                                continue
-                            if self.count_figures("wR", 10):
-                                self.pieces[pos] = "img/wR.png"
-                            self.draw_chessboard()
-                            self.draw_pieces()
-                manager.process_events(event)
-                manager.update(time_delta)
-                manager.draw_ui(self.board_screen)
-                pygame.display.flip()
-
-        if player_color == "b":
-            self.active_color, self.non_active_color = self.non_active_color, self.active_color
-        old_pos = None
-        to_move = False
-        pygame.display.update()
-
-        valid_moves = self.move_generator.generate_valid_moves()
-
-        running = 1
-        depth = 1
-        best_moves = None
-        while depth < 4:
-            ai = AI(self, depth)
-            value = ai.nega_max(valid_moves, depth, 1 if player_color == "w" else -1)
-            best_moves = ai.get_best_moves()
-            if value == CHECKMATE:
-                break
-            depth += 2
-
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit()
-                elif event.type == pygame.MOUSEBUTTONUP and not to_move:
-                    click_pos = pygame.mouse.get_pos()
-                    old_pos = ((click_pos[1]) // self.field_side, click_pos[0] // self.field_side)
-                    if old_pos in self.pieces.keys() and self.pieces.get(old_pos)[4] == self.active_color:
-                        pygame.draw.rect(self.board_screen, (255, 255, 0),
-                                         (old_pos[1] * self.field_side, old_pos[0] * self.field_side, self.field_side,
-                                          self.field_side))
-                        to_move = True
-
-                        for moves in valid_moves:
-                            if moves[0] == old_pos and self.check_move_correctness(moves[0], moves[1]):
-                                if ((moves[1][0] % 2 == 0 and moves[1][1] % 2 != 0) or (
-                                        moves[1][0] % 2 != 0 and moves[1][1] % 2 == 0)):
-                                    pygame.draw.rect(self.board_screen, (255, 255, 102),
-                                                     (moves[1][1] * self.field_side, moves[1][0] * self.field_side,
-                                                      self.field_side,
-                                                      self.field_side))
-                                else:
-                                    pygame.draw.rect(self.board_screen, (255, 255, 204),
-                                                     (moves[1][1] * self.field_side, moves[1][0] * self.field_side,
-                                                      self.field_side,
-                                                      self.field_side))
-                        self.draw_pieces()
-
-                elif event.type == pygame.MOUSEBUTTONUP and to_move:
-                    click_pos = pygame.mouse.get_pos()
-                    new_pos = ((click_pos[1]) // self.field_side, click_pos[0] // self.field_side)
-
-                    if (old_pos, new_pos) in valid_moves and self.check_move_correctness(old_pos, new_pos):
-                        fig = self.pieces[old_pos][5]
-                        move_diff = (new_pos[0] - old_pos[0], new_pos[1] - old_pos[1])
-                        if fig == "K" and move_diff == (0, 2):
-                            if not self.check_castling_availability("short"):
-                                break
-                        if fig == "K" and move_diff == (0, -2):
-                            if not self.check_castling_availability("long"):
-                                break
-
-                        if (old_pos, new_pos) in best_moves:
-                            move = Move(old_pos, new_pos, self.pieces, self.board_screen)
-                            self.sender.put_message("Move " + self.pos_to_string(old_pos) + "-" + self.pos_to_string(new_pos))
-                            self.pieces = move.make_move()
-                            self.history.append(self.pieces)
-                            self.update_castling_info(old_pos, new_pos)
-                            self.moveLog.append((old_pos, new_pos))
-                            self.active_color, self.non_active_color = self.non_active_color, self.active_color
-                            running = 0
-                        else:
-                            self.sender.put_message("Bad move. Try again")
-                    to_move = False
-                    valid_moves = self.move_generator.generate_valid_moves()
-                    if not self.find_any_possible_move(valid_moves):
-                        if self.find_any_attacker():
-                            text = "black" if self.active_color == "w" else "white"
-                            text += " won"
-                            self.sender.put_message(text)
-                        else:
-                            self.sender.put_message("tie")
-                    self.draw_chessboard()
-                    self.draw_pieces()
-                    manager.update(time_delta)
-                    manager.draw_ui(self.board_screen)
-                    pygame.display.update()
-                pygame.display.flip()
-        while 1:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit()
-            pygame.display.flip()
 
     def pos_to_string(self, pos):
         """ Konwersja tupla dwóch liczb, wyznaczonych kliknięciem na odpowiadające oznaczenie planszy"""
@@ -735,7 +228,6 @@ class Gameplay:
         """ Rysowanie figur """
         for pos, img_name in self.pieces.items():
             image = pygame.image.load(img_name)
-            # image = pygame.transform.scale(image, (self.field_side, self.field_side))
             self.board_screen.blit(image, (pos[1] * self.field_side, pos[0] * self.field_side))
 
     def find_any_attacker(self):

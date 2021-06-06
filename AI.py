@@ -106,7 +106,6 @@ class AI:
             if score > max_val:
                 max_val = score
                 if depth == self.depth:
-                    # print("Aktualna wartosc dla bota ", max_val, move)
                     self.next_move = move
             back_move = Move(move[1], move[0], self.gameplay.pieces, self.screen)
             back_move.set_non_player_move()
