@@ -1,5 +1,5 @@
 import pygame
-from messageSender import Sender
+from MessageSender import Sender
 
 class Move:
 

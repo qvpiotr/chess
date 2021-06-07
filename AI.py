@@ -62,7 +62,7 @@ class AI:
             cp_init_pos = {}
             for pos, img in self.gameplay.pieces.items():
                 cp_init_pos[pos] = img
-            next_move = move(move[0], move[1], self.gameplay.pieces, self.screen)
+            next_move = Move(move[0], move[1], self.gameplay.pieces, self.screen)
             next_move.set_non_player_move()
             self.gameplay.pieces = next_move.make_move()
             self.gameplay.active_color, self.gameplay.non_active_color = self.gameplay.non_active_color, \
@@ -76,7 +76,7 @@ class AI:
                     self.best_moves.clear()
                     self.best_moves.append(move)
                     self.next_move = move
-            back_move = move(move[1], move[0], self.gameplay.pieces, self.screen)
+            back_move = Move(move[1], move[0], self.gameplay.pieces, self.screen)
             back_move.set_non_player_move()
             self.gameplay.pieces = back_move.make_move()
             self.gameplay.active_color, self.gameplay.non_active_color = self.gameplay.non_active_color, \

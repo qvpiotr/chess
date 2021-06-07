@@ -7,9 +7,9 @@ from string import ascii_lowercase
 import pygame_gui
 
 from AI import *
-from messageSender import Sender
+from MessageSender import Sender
 from move import *
-from movesGenerator import *
+from MovesGenerator import *
 
 
 class Gameplay:

@@ -2,7 +2,7 @@ import pygame_gui
 import sys
 from AI import *
 from move import *
-from movesGenerator import *
+from MovesGenerator import *
 
 
 class FromPos:

@@ -2,13 +2,13 @@ import pygame_gui
 import sys
 from AI import *
 from move import *
-from movesGenerator import *
+from MovesGenerator import *
 
 
 class TwoPlayersGame:
 
     def __init__(self, gameplan):
-        self.gameplan = gameplan
+        self.gameplay = gameplan
 
     def two_players_game(self):
         """ Obsługuje gre dla dwóch ludzi """
